@@ -10,7 +10,12 @@ To build a firmware image
 `tar xf buildroot-2024.02.1.tar.xz`
 4. Copy the desired configuration into the repository
 `cp configs/alpine_defconfig buildroot-2024.02.1/.config`
-5. 
+5. Make any configuration changes desired.
+`make menuconfig`
+6. Build the project
+`make` or `make -j$(nproc)`
+7. Refer to the repo wiki pages for details about installing/using the images.
+
 
 If this project helps you click the Star at the top of the page to let me know! If you'd like to contribute to the continued development/maintenance consider clicking on the sponsor button.
 
