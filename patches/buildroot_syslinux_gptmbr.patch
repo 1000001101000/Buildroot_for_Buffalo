@@ -1,0 +1,10 @@
+--- buildroot/boot/syslinux/syslinux.mk	2024-03-26 04:28:48.000000000 -0500
++++ buildroot-2024.02.1/boot/syslinux/syslinux.mk	2024-04-19 10:38:14.393726219 -0500
+@@ -95,6 +95,7 @@
+ SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_ISOLINUX) += bios/core/isolinux.bin
+ SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_PXELINUX) += bios/core/pxelinux.bin
+ SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_MBR) += bios/mbr/mbr.bin
++SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_MBR) += bios/mbr/gptmbr.bin
+ SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_EFI) += $(SYSLINUX_EFI_BITS)/efi/syslinux.efi
+ 
+ SYSLINUX_C32 = $(call qstrip,$(BR2_TARGET_SYSLINUX_C32))

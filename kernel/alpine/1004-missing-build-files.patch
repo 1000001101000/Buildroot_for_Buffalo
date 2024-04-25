@@ -1,0 +1,270 @@
+diff --git a/Makefile b/Makefile
+index ed05bd5c..f227f438 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ VERSION = 3
+ PATCHLEVEL = 10
+ SUBLEVEL = 20
+-EXTRAVERSION = -al-5.0-pr2-buffalo
++EXTRAVERSION = -alpine-terastation
+ NAME = TOSSUG Baby Fish
+ 
+ # *DOCUMENTATION*
+diff --git a/arch/arm/Makefile b/arch/arm/Makefile
+index 3ef5fb0b..f450db27 100644
+--- a/arch/arm/Makefile
++++ b/arch/arm/Makefile
+@@ -301,9 +301,9 @@ zinstall uinstall install: vmlinux
+ 
+ dtbs: scripts
+ 	$(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) dtbs
+-ifeq ($(CONFIG_BUFFALO_PLATFORM),y)
+-	$(Q)$(MAKE) $(build)=buffalo/$(boot)/dts MACHINE=$(MACHINE) dtbs
+-endif
++#ifeq ($(CONFIG_BUFFALO_PLATFORM),y)
++#	$(Q)$(MAKE) $(build)=buffalo/$(boot)/dts MACHINE=$(MACHINE) dtbs
++#endif
+ 
+ # We use MRPROPER_FILES and CLEAN_FILES now
+ archclean:
+diff --git a/arch/arm/mach-alpine/Kconfig b/arch/arm/mach-alpine/Kconfig
+new file mode 100644
+index 00000000..7c95d028
+--- /dev/null
++++ b/arch/arm/mach-alpine/Kconfig
+@@ -0,0 +1,10 @@
++menu "Annapurna Labs Alpine Soc Device Tree"
++	depends on ARCH_ALPINE
++
++config AL_PCIE_RMN_1010
++	bool "Annapurna Labs PCIe RMN 1010 fix"
++	depends on AL_DMA
++	help
++		Use the DMA engine to access pcie memory instead of the CPU.
++
++endmenu
+diff --git a/arch/arm/mach-alpine/Makefile b/arch/arm/mach-alpine/Makefile
+new file mode 100644
+index 00000000..c1185767
+--- /dev/null
++++ b/arch/arm/mach-alpine/Makefile
+@@ -0,0 +1,24 @@
++#
++# Makefile for the linux kernel.
++#
++
++ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
++        -I$(srctree)/arch/arm/plat-orion/include
++
++KBUILD_CPPFLAGS += -Iarch/arm/mach-alpine/include/al_hal \
++				   -Iarch/arm/mach-alpine/include/mach
++
++obj-y					+= alpine_machine.o
++obj-y					+= alpine_cpu_pm.o
++obj-$(CONFIG_PCI)			+= pcie_of.o
++obj-y					+= al_fabric.o
++obj-y 					+= al_hal/
++obj-$(CONFIG_SMP)			+= platsmp.o
++obj-$(CONFIG_HOTPLUG_CPU)		+= sleep-alpine.o
++#obj-$(CONFIG_PCI_MSI)			+= irq-alpine-msi.o
++obj-$(CONFIG_PCI_MSI)			+= msix.o
++
++# only build sleep-alpine once
++ifneq ($(CONFIG_HOTPLUG_CPU), y)
++obj-$(CONFIG_CPU_IDLE_ALPINE)   += sleep-alpine.o
++endif
+diff --git a/arch/arm/mach-alpine/Makefile.boot b/arch/arm/mach-alpine/Makefile.boot
+new file mode 100644
+index 00000000..67039c3e
+--- /dev/null
++++ b/arch/arm/mach-alpine/Makefile.boot
+@@ -0,0 +1,3 @@
++   zreladdr-y	:= 0x00008000
++params_phys-y	:= 0x00000100
++initrd_phys-y	:= 0x00800000
+diff --git a/arch/arm/mach-alpine/al_hal/Kconfig b/arch/arm/mach-alpine/al_hal/Kconfig
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/arch/arm/mach-alpine/al_hal/Makefile b/arch/arm/mach-alpine/al_hal/Makefile
+new file mode 100644
+index 00000000..06183b31
+--- /dev/null
++++ b/arch/arm/mach-alpine/al_hal/Makefile
+@@ -0,0 +1,20 @@
++#
++# Makefile for the linux kernel.
++#
++
++KBUILD_CPPFLAGS += -Iarch/arm/mach-alpine/include/al_hal/
++
++obj-y	+= al_hal_udma_config.o
++obj-y	+= al_hal_udma_main.o
++obj-y	+= al_hal_m2m_udma.o
++obj-y	+= al_hal_serdes.o
++obj-y   += al_hal_udma_debug.o
++obj-y   += al_hal_udma_iofic.o
++obj-y   += al_hal_udma_fast.o
++obj-y   += al_hal_iofic.o
++obj-y   += al_hal_ssm.o
++obj-y   += al_init_sys_fabric.o
++obj-$(CONFIG_PCI)	+= al_hal_pcie.o
++obj-$(CONFIG_PCI)	+= al_hal_pcie_interrupts.o
++obj-y	+= al_hal_exports.o
++obj-$(CONFIG_EDAC_AL_MC)+= al_hal_ddr.o
+diff --git a/drivers/crypto/al/Kconfig b/drivers/crypto/al/Kconfig
+new file mode 100644
+index 00000000..9e83fd8a
+--- /dev/null
++++ b/drivers/crypto/al/Kconfig
+@@ -0,0 +1,22 @@
++config CRYPTO_DEV_AL_CRYPTO
++	tristate "Support for Annapurna Labs Crypto engine"
++	depends on ARCH_ALPINE
++	select CRYPTO_AES
++	select CRYPTO_DES
++	select CRYPTO_SHA256
++	select CRYPTO_ALGAPI
++	select CRYPTO_AUTHENC
++	select CRYPTO_BLKCIPHER
++	select CRYPTO_CRC32C
++	help
++	  Enable support for the Annapurna Labs Crypto acceleration engine.
++	  Currently AES and SHA256 are supported.
++
++config CRYPTO_DEV_AL_CRYPTO_STATS
++	bool "Annapurna Labs Crypto statistics enabled"
++	depends on CRYPTO_DEV_AL_CRYPTO
++	help
++	  Enable Annapurna Labs Crypto acceleration engine statistics.
++
++config CRYPTO_DEV_AL_AHASH_CRC
++	def_bool CRYPTO_DEV_AL_CRYPTO
+diff --git a/drivers/crypto/al/Makefile b/drivers/crypto/al/Makefile
+new file mode 100644
+index 00000000..15ff62e4
+--- /dev/null
++++ b/drivers/crypto/al/Makefile
+@@ -0,0 +1,15 @@
++MAKEFILE_DIR:=$(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
++
++KBUILD_CPPFLAGS += -Iarch/arm/mach-alpine/include/al_hal/
++
++obj-$(CONFIG_CRYPTO_DEV_AL_CRYPTO) += al_crypto.o
++
++al_crypto-objs := al_crypto_main.o 
++al_crypto-objs += al_crypto_core.o 
++al_crypto-objs += al_crypto_alg.o 
++al_crypto-objs += al_crypto_hash.o 
++al_crypto-objs += al_crypto_crc.o 
++al_crypto-objs += al_hal_ssm_crypto.o 
++al_crypto-objs += al_hal_ssm_crc_memcpy.o 
++al_crypto-objs += al_crypto_sysfs.o 
++al_crypto-objs += al_crypto_module_params.o
+diff --git a/drivers/dma/al/Kconfig b/drivers/dma/al/Kconfig
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/drivers/dma/al/Makefile b/drivers/dma/al/Makefile
+new file mode 100644
+index 00000000..e7103834
+--- /dev/null
++++ b/drivers/dma/al/Makefile
+@@ -0,0 +1,13 @@
++MAKEFILE_DIR:=$(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
++
++KBUILD_CPPFLAGS += -Iarch/arm/mach-alpine/include/al_hal/
++KBUILD_CPPFLAGS += -Iarch/arm/mach-alpine/include/mach/
++KBUILD_CPPFLAGS += -I$(MAKEFILE_DIR)/al_hal_raid/
++
++obj-$(CONFIG_AL_DMA) += al_dma.o
++
++al_dma-objs := al_dma_main.o al_dma_core.o al_dma_cleanup.o al_dma_sysfs.o \
++		al_dma_prep_interrupt.o al_dma_prep_memcpy.o al_dma_prep_sg.o \
++		al_dma_prep_memset.o al_dma_prep_xor.o al_dma_prep_xor_val.o \
++		al_dma_prep_pq.o al_dma_prep_pq_val.o al_hal_ssm_raid.o \
++		al_dma_module_params.o
+\ No newline at end of file
+diff --git a/drivers/mtd/nand/al/Kconfig b/drivers/mtd/nand/al/Kconfig
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/drivers/mtd/nand/al/Makefile b/drivers/mtd/nand/al/Makefile
+new file mode 100644
+index 00000000..3ff98f13
+--- /dev/null
++++ b/drivers/mtd/nand/al/Makefile
+@@ -0,0 +1,9 @@
++KBUILD_CPPFLAGS += -Iarch/arm/mach-alpine/include/al_hal/
++
++# TODO: temp solution to allow include raid.h - will be removed after
++# implementing read/write with dma support
++KBUILD_CPPFLAGS += -Idrivers/dma/al
++
++obj-$(CONFIG_MTD_NAND_AL) += al-nand.o
++al-nand-objs += al_nand.o
++al-nand-objs += al_hal_nand.o
+diff --git a/drivers/net/ethernet/al/Kconfig b/drivers/net/ethernet/al/Kconfig
+new file mode 100644
+index 00000000..43c5f2af
+--- /dev/null
++++ b/drivers/net/ethernet/al/Kconfig
+@@ -0,0 +1,37 @@
++#
++# Annapurna Labs driver configuration
++#
++
++config NET_AL_ETH
++	tristate "Annapurna Labs unified 1G/10G Ethernet driver"
++	depends on PCI && INET
++	select PHYLIB
++	help
++	  This is the driver supports both standard and advanced Annapurna Labs
++	  1G and 10G Ethernet controllers.
++
++choice
++	prompt "Receive buffers allocate mode"
++        default AL_ETH_ALLOC_FRAG
++        depends on NET_AL_ETH
++
++config AL_ETH_ALLOC_FRAG
++         bool "Enabling frag allocation for rx buffers"
++        help
++          Say Y here if you want to enabling frag allocations for rx buffers,
++          in the Annapurna Labs eth driver.
++
++config AL_ETH_ALLOC_PAGE
++        bool "Enabling pages allocation for rx buffers"
++        help
++          Say Y here if you want to enabling page allocations for rx buffers,
++          in the Annapurna Labs eth driver.
++
++config AL_ETH_ALLOC_SKB
++        bool "Enabling skb allocation for rx buffers"
++        help
++	  Say Y here if you want to enable skb allocations for rx buffers,
++	  in the Annapurna Labs eth driver. This allocation mode is prefered for
++	  data plane applications.
++
++endchoice
+diff --git a/drivers/net/ethernet/al/Makefile b/drivers/net/ethernet/al/Makefile
+new file mode 100644
+index 00000000..4f9e0f98
+--- /dev/null
++++ b/drivers/net/ethernet/al/Makefile
+@@ -0,0 +1,5 @@
++KBUILD_CPPFLAGS += -Iarch/arm/mach-alpine/include/al_hal/
++
++obj-$(CONFIG_NET_AL_ETH) += al_eth_drv.o
++al_eth_drv-objs := al_eth.o al_eth_sysfs.o al_hal_eth_main.o al_hal_eth_kr.o al_init_eth_kr.o al_init_eth_lm.o
++
+diff --git a/drivers/thermal/al/Kconfig b/drivers/thermal/al/Kconfig
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/drivers/thermal/al/Makefile b/drivers/thermal/al/Makefile
+new file mode 100644
+index 00000000..9fb6763d
+--- /dev/null
++++ b/drivers/thermal/al/Makefile
+@@ -0,0 +1,3 @@
++KBUILD_CPPFLAGS += -Iarch/arm/mach-alpine/include/al_hal/
++
++obj-$(CONFIG_AL_THERMAL)	+= al_thermal.o al_hal_thermal_sensor.o

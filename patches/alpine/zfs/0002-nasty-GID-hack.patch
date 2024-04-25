@@ -1,0 +1,15 @@
+diff --git a/module/os/linux/spl/spl-cred.c b/module/os/linux/spl/spl-cred.c
+index d407fc6..c8d8664 100644
+--- a/module/os/linux/spl/spl-cred.c
++++ b/module/os/linux/spl/spl-cred.c
+@@ -105,8 +105,8 @@ crgetgroups(const cred_t *cr)
+ #ifdef HAVE_GROUP_INFO_GID
+ 	gids = KGIDP_TO_SGIDP(gi->gid);
+ #else
+-	if (gi->nblocks > 0)
+-		gids = KGIDP_TO_SGIDP(gi->blocks[0]);
++//	if (gi->nblocks > 0)
++//		gids = KGIDP_TO_SGIDP(gi->blocks[0]);
+ #endif
+ 	return (gids);
+ }

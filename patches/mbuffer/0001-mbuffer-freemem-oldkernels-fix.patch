@@ -1,0 +1,21 @@
+diff --git a/mbuffer.c b/mbuffer.c
+index 502ca0e..3d16d32 100644
+--- a/mbuffer.c
++++ b/mbuffer.c
+@@ -1003,7 +1003,15 @@ static void initDefaults()
+ 		if (n > 0) {
+ 			char *at = strstr(tmp,"MemAvailable:");
+ 			if (at) {
+-				AvP = strtol(at+13,0,0);
++				at += 13;
++			} else {
++				at = strstr(tmp,"MemFree:");
++				if (at) {
++					at += 8;
++				}
++			}
++			if (at) {
++				AvP = strtol(at,0,0);
+ 				AvP <<= 10;
+ 				AvP /= PgSz;
+ 				debugmsg("available memory: %lu pages\n",AvP);

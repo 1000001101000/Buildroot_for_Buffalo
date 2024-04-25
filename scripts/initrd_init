@@ -1,0 +1,84 @@
+#!/bin/busybox sh
+# shellcheck shell=dash
+
+/bin/mount -t proc none /proc
+/bin/mount -t sysfs none /sys
+/bin/mount -t devtmpfs none /dev
+
+##grab fs UUIDs set at build time
+##may create enhancement in future to re-gen and update/cache other values.
+##(or just replace with dracut or something)
+rootfsID="$(cat /UUID)"
+bootID="$(cat /bootUUID)"
+variant="$(cat /variant)"
+
+##initialize display
+if [ "$variant" == "alpine" ]; then
+  /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LED_ON 4","LED_OFF 3","LED_OFF 5","LCD_PUTS 0 Custom InitRD"
+fi
+
+sleep 1
+
+FORCESHELL=0
+if [ "$variant" == "alpine" ]; then
+  echo "Press FUNCTION button to force shell"
+  /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LCD_PUTS 0 Press Function","LCD_PUTS 1 For Shell"
+  timeout 5s dd if=/dev/ttyUSB0 count=5 2>/dev/null | grep -q FUNC
+  if [ $? -eq 0 ]; then
+    FORCESHELL=1
+    /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LED_ON 3"
+    echo "recovery shell requested"
+  else
+    /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LCD_PUTS 0 Custom InitRD","LCD_PUTS 1 Finding ROOTFS"
+  fi
+fi
+
+##look for rootfs device with matching UUID
+ROOTDEV="$(blkid -U "$rootfsID")"
+BOOTDEV="$(blkid -U "$bootID")"
+
+##if they were not found do a more intrusive search
+if [ "$ROOTDEV" == "" ] || [ "$BOOTDEV" == "" ]; then
+  ##mdadm autostart doesn't seem to work even with metadata 0.90
+  ##for now start any arrays present and try again.
+  if [ "$variant" == "alpine" ]; then
+    /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LED_ON 3","LCD_PUTS 1 Scanning MDADM"
+  fi
+  echo "failed to find rootfs, trying mdadm"
+  echo ""
+  mkdir -p /run/mdadm
+  /sbin/mdadm --detail --scan 2>&1
+  mdadm --assemble --scan
+  /sbin/mdadm --detail --scan 2>&1
+
+  BOOTDEV="$(blkid -U "$bootID")"
+  ROOTDEV="$(blkid -U "$rootfsID")"
+
+  if [ "$ROOTDEV" == "" ]; then
+    echo "failed to find rootfs"
+  fi
+fi
+
+###could cache conf in /boot...we know where that will be.
+
+if [ "$ROOTDEV" == "" ] || [ $FORCESHELL -eq 1 ]; then
+  if [ "$variant" == "alpine" ]; then
+    /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LED_OFF 4","LCD_PUTS 0 Custom InitRD","LCD_PUTS 1 Recovery Shell"
+  fi
+  echo "dropping to a shell"
+  echo ""
+  echo "mount your rootfs on /mnt/root then type 'exit' to continue boot"
+  /bin/getty -n -l /bin/sh -t 300 -L console 0 vt100
+else
+  echo "ROOTFS: $rootfsID -> $ROOTDEV"
+  echo "BOOTFS: $bootID -> $BOOTDEV"
+  mount -o ro "$ROOTDEV" /mnt/root 2>/dev/null
+  mount "$BOOTDEV" /mnt/root/boot 2>/dev/null
+fi
+if [ "$variant" == "alpine" ]; then
+  /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LCD_PUTS 1 Attempting Boot"
+fi
+umount /dev /proc /sys
+mount -t devtmpfs none /mnt/root/dev
+
+exec switch_root /mnt/root /sbin/init

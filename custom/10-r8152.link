@@ -1,0 +1,9 @@
+[Match]
+Driver=r8152
+
+[Link]
+NamePolicy=kernel database onboard slot path
+MTUBytes=9000
+#MTUBytes=14000
+RxBufferSize=4096
+TxBufferSize=4096

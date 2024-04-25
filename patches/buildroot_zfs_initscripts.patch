@@ -1,0 +1,34 @@
+diff --git a/package/zfs/zfs.mk b/package/zfs/zfs.mk
+index 59cdd31..d0ab118 100644
+--- a/package/zfs/zfs.mk
++++ b/package/zfs/zfs.mk
+@@ -17,12 +17,10 @@ ZFS_AUTORECONF = YES
+ 
+ ZFS_DEPENDENCIES = libaio openssl udev util-linux zlib libcurl linux
+ 
+-# sysvinit installs only a commented-out modules-load.d/ config file
+ ZFS_CONF_OPTS = \
+ 	--with-linux=$(LINUX_DIR) \
+ 	--with-linux-obj=$(LINUX_DIR) \
+-	--disable-rpath \
+-	--disable-sysvinit
++	--disable-rpath
+ 
+ ifeq ($(BR2_PACKAGE_LIBTIRPC),y)
+ ZFS_DEPENDENCIES += libtirpc
+@@ -78,6 +76,15 @@ ZFS_MODULE_SUBDIRS = \
+ 	module/zstd \
+ 	module/zfs
+ 
++## if /sbin/openrc-run exists the scripts skip the non-openrc code
++## if the #! is blank or the default of /bin/sh openrc-run skips the script.
++## see https://github.com/OpenRC/openrc/blob/master/service-script-guide.md#syntax-of-service-scripts
++## rewrite the #! to /sbin/openrc-run if we're using openrc
++define ZFS_INSTALL_INIT_OPENRC
++  ls -l $(TARGET_DIR)/etc/init.d/z*
++  sed -i 's/^#!.*/#!\/sbin\/openrc-run/g' $(TARGET_DIR)/etc/init.d/zfs-*
++endef
++
+ # These requirements will be validated by zfs/config/kernel-config-defined.m4
+ define ZFS_LINUX_CONFIG_FIXUPS
+ 	$(call KCONFIG_DISABLE_OPT,CONFIG_DEBUG_LOCK_ALLOC)

@@ -1,0 +1,8 @@
+[Match]
+Driver=e1000e
+
+[Link]
+NamePolicy=kernel database onboard slot path
+MTUBytes=6000
+RxBufferSize=4096
+TxBufferSize=4096

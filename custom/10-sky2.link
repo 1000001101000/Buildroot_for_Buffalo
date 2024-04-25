@@ -1,0 +1,8 @@
+[Match]
+Driver=sky2
+
+[Link]
+NamePolicy=kernel database onboard slot path
+MTUBytes=9000
+#RxBufferSize=680
+TxBufferSize=1024

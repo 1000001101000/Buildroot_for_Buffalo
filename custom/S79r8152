@@ -1,0 +1,9 @@
+#!/bin/sh
+#sleep 10
+nics="$(dmesg | grep r8152 | grep eth | cut -d\  -f7 | cut -d: -f1 | sort -u)"
+for x in $nics
+do
+# ethtool -s $x autoneg on advertise 0x802f
+ ifup $x 2>/dev/null
+done
+exit 0
