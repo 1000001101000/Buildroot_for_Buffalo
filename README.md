@@ -5,16 +5,30 @@ Tools for building and installing custom firmware on Buffalo devices using tools
 To build a firmware image
 1. Clone the repository
 2. Download the supported buildroot version to the root of the repo
+   
 `wget https://buildroot.org/downloads/buildroot-2024.02.1.tar.xz`
-3. unpack it
+
+4. unpack it
+
 `tar xf buildroot-2024.02.1.tar.xz`
-4. Copy the desired configuration into the repository
+
+5. Copy the desired configuration into the buildroot directory.
+
 `cp configs/alpine_defconfig buildroot-2024.02.1/.config`
-5. Make any configuration changes desired.
+
+6. Enter the buildroot directory
+
+`cd buildroot-2024.02.1/`
+
+6. Make any configuration changes desired.
+
 `make menuconfig`
-6. Build the project
-`make` or `make -j$(nproc)`
-7. Refer to the repo wiki pages for details about installing/using the images.
+
+7. Build the project
+
+`make`
+
+8. Refer to the repo wiki pages for details about installing/using the images.
 
 
 If this project helps you click the Star at the top of the page to let me know! If you'd like to contribute to the continued development/maintenance consider clicking on the sponsor button.
