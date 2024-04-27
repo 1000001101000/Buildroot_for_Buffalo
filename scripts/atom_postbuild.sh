@@ -72,7 +72,6 @@ cp "$BINARIES_DIR"/initrd.gz "$workdir"
 ## generate syslinux.cfg
 echo "
 ui menu.c32
-MENU RESOLUTION 1024 768
 MENU TITLE Buildroot for Buffalo
 DEFAULT buildroot
 TIMEOUT 50
@@ -82,7 +81,7 @@ label Buildroot for Buffalo
       menu default
       kernel /bzImage
       initrd /initrd.gz
-      append root=PARTUUID=$rootpartID rw earlyprintk audit=0 rootwait i915.modeset=0
+      append root=PARTUUID=$rootpartID rw earlyprintk audit=0 rootwait
 
 label Buildroot for Buffalo
       menu label Buildroot $BR2_VERSION (serial console)
@@ -106,5 +105,6 @@ dd if="$rootimg" of="$usbimg" bs="$sectorsz" seek="$rootstart" conv=notrunc 2>/d
 if [ $? -ne 0 ]; then "write boot image failed"; exit 99; fi
 
 ##write syslinux boot record to partition table.
-dd conv=notrunc bs=440 count=1 if="$BINARIES_DIR/syslinux/gptmbr.bin" of="$usbimg" 2>/dev/null
+dd bs=440 count=1 if="$BINARIES_DIR/syslinux/gptmbr.bin" of="$usbimg" conv=notrunc 2>/dev/null
 if [ $? -ne 0 ]; then "write mbr image failed"; exit 99; fi
+sync
