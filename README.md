@@ -2,7 +2,16 @@
 
 Tools for building and installing custom firmware on Buffalo devices using tools provided by https://buildroot.org/
 
-To build a firmware image
+## Summary
+Configuration files and scripts to generate custom Linux images for Buffalo devices based on Buildroot. 
+
+These images have some advantages over a more traditional distro like Debian, including:
+* All software custom compiled for the target device. This results in smaller, better-optimized binaries in most cases.
+* Much smaller OS images compared to even a minimal Debian install.
+* Can be built around kernels/etc that would otherwise be incompatible with Debian/etc
+
+
+## To build a firmware image
 1. Clone the repository
 2. Download the supported buildroot version to the root of the repo
    
