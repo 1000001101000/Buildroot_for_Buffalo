@@ -8,3 +8,7 @@ dl/
 modules.order
 *.mod.*
 Module.symvers
+atom/
+ls500/
+ls700/
+denverton/
