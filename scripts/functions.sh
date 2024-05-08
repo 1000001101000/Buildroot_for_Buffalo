@@ -118,6 +118,7 @@ echo "$variant" > "$workdir/variant"
 importlibs=""
 for x in $importbins
 do
+  if [ ! -e "$TARGET_DIR/$x" ]; then continue; fi
   cp "$TARGET_DIR/$x" "$workdir/$x"
   chmod +x "$workdir/$x"
   importlibs="$importlibs $(readelf -d "$TARGET_DIR/$x" | grep 'NEEDED' | cut -d[ -f2 | cut -d] -f1)"
@@ -131,9 +132,11 @@ recurse=0
 for lib in $importlibs
 do
   if [ ! -e "$workdir/lib/$lib" ]; then
-    recurse=1
     find "$TARGET_DIR" -name "$lib" -exec cp {} "$workdir/lib/$lib" \;
-    importlibs="$importlibs $(readelf -d "$workdir/lib/$lib" | grep 'NEEDED' | cut -d[ -f2 | cut -d] -f1)"
+    if [ $? -ne 0 ]; then
+      recurse=1
+      importlibs="$importlibs $(readelf -d "$workdir/lib/$lib" | grep 'NEEDED' | cut -d[ -f2 | cut -d] -f1)"
+    fi
   fi
 done
 done
@@ -152,5 +155,14 @@ find . -print0 | cpio --null --create --verbose --format=newc > ../initrd
 cd - >/dev/null || exit 1
 
 ##compress the initrd image.
-gzip "$BINARIES_DIR/initrd"
+gzip -n "$BINARIES_DIR/initrd"
+}
+
+pad_dtbs()
+{
+  ##pad the dtb size so uboot can pass stuff where needed
+  for x in $(ls "$BINARIES_DIR"/*.dtb)
+  do
+    dtc -I dtb -O dtb -p 10240 -o "$x" "$x"
+  done
 }
