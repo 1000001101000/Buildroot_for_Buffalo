@@ -3,6 +3,8 @@
 ##import common functions
 . ../scripts/functions.sh
 
+pad_dtbs
+
 rootimg="$BINARIES_DIR/rootfs.ext2"
 bootimg="$BINARIES_DIR/boot.ext3"
 
@@ -31,6 +33,3 @@ cd "$bootdir" || exit 1
 sha1sum * > FW_CHECKSUM.SHA1
 cd - >/dev/null || exit 1
 mkfs.ext3 -U "$bootID" -d "$bootdir" "$bootimg"
-
-
-
