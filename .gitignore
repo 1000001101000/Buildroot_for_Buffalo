@@ -8,6 +8,7 @@ dl/
 modules.order
 *.mod.*
 Module.symvers
+/alpine/
 /atom/
 /ls500/
 /ls700/
