@@ -56,7 +56,7 @@ custom_module()
         make TARGET="$kver" KERNEL_BUILD="$BUILD_DIR/linux-$kver" CROSS_COMPILE="$cross" KERNEL_MODULES="$TARGET_DIR/lib/modules/$kver"
         make modules_install TARGET="$kver" KERNEL_BUILD="$BUILD_DIR/linux-$kver" CROSS_COMPILE="$cross" KERNEL_MODULES="$TARGET_DIR/lib/modules/$kver"
         cd - > /dev/null
-        depmod -b "$TARGET_DIR" -o "$TARGET_DIR" 6.6.22
+        depmod -b "$TARGET_DIR" -o "$TARGET_DIR" "$kver"
 }
 
 r8152_config()
@@ -132,8 +132,9 @@ recurse=0
 for lib in $importlibs
 do
   if [ ! -e "$workdir/lib/$lib" ]; then
+    echo "cp $lib"
     find "$TARGET_DIR" -name "$lib" -exec cp {} "$workdir/lib/$lib" \;
-    if [ $? -ne 0 ]; then
+    if [ $? -eq 0 ]; then
       recurse=1
       importlibs="$importlibs $(readelf -d "$workdir/lib/$lib" | grep 'NEEDED' | cut -d[ -f2 | cut -d] -f1)"
     fi
