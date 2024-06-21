@@ -33,12 +33,18 @@ if [ "$variant" == "alpine" ]; then
   fi
 fi
 
+echo "custom initrd, looking for rootfs"
+
 ##look for rootfs device with matching UUID
 ROOTDEV="$(blkid -U "$rootfsID")"
 BOOTDEV="$(blkid -U "$bootID")"
 
 ##if they were not found do a more intrusive search
 if [ "$ROOTDEV" == "" ] || [ "$BOOTDEV" == "" ]; then
+
+  ##we might still be waiting for some devices to show up, wait a few sec just in case.
+  sleep 5
+
   ##mdadm autostart doesn't seem to work even with metadata 0.90
   ##for now start any arrays present and try again.
   if [ "$variant" == "alpine" ]; then
