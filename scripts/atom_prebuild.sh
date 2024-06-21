@@ -1,8 +1,6 @@
 
 ##heimdal/samba crossbuild issue waiting to be merged
-if [ "$BR2_VERSION" == "2024.02.1" ] || [ "$BR2_VERSION" == "2024.02" ]; then
-  curl "https://patchwork.ozlabs.org/project/buildroot/patch/20240210103634.3502847-1-bernd@kuhls.net/raw/" 2>/dev/null | patch -N -p1
-fi
+curl "https://patchwork.ozlabs.org/project/buildroot/patch/20240210103634.3502847-1-bernd@kuhls.net/raw/" 2>/dev/null | patch -N -p1
 
 ##patch to add sysbench and dependency may need to look into why never merged
 curl "https://marc.info/?l=buildroot&m=170021431900448&q=raw" 2>/dev/null | patch -N -p1
