@@ -132,7 +132,6 @@ recurse=0
 for lib in $importlibs
 do
   if [ ! -e "$workdir/lib/$lib" ]; then
-    echo "cp $lib"
     find "$TARGET_DIR" -name "$lib" -exec cp {} "$workdir/lib/$lib" \;
     if [ $? -eq 0 ]; then
       recurse=1
