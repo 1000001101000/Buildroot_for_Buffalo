@@ -69,11 +69,18 @@ cat ~/buildroot_keep/authorized_keys >> "$target/root/.ssh/authorized_keys"
 mkdir "$target/mnt/array" 2>/dev/null
 
 ##setup services to start at appropariate run levels
-for x in mdadm mdadm-raid rsyncd zfs-import zfs-share zfs-mount zfs-load-key zfs-zed
+for x in mdadm mdadm-raid rsyncd
 do
   ln -s "/etc/init.d/$x" "$target/etc/runlevels/boot/$x" 2>/dev/null
 done
 ln -s "/etc/init.d/dcron" "$target/etc/runlevels/default/dcron" 2>/dev/null
+
+num=90
+for x in zfs-load-key zfs-import zfs-mount zfs-share zfs-zed
+do
+  ln -s "/etc/init.d/$x" "$target/etc/init.d/S$num$x"
+  num=$((num+1))
+done
 
 ##try to force cgroups v1 for docker compatability
 echo 'rc_cgroup_mode="legacy"' >> "$target/etc/rc.conf"
