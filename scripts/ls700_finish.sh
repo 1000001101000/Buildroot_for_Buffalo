@@ -36,7 +36,10 @@ do
   wget "https://git.alpinelinux.org/aports/plain/main/$x.initd" -O "$target/etc/init.d/$(basename $x)" 2>/dev/null
 done
 
+##dcron removed pid file parameter but alpine hasn't updated their init yet
 wget "https://git.alpinelinux.org/aports/plain/community/dcron/dcron.initd" -O "$target/etc/init.d/dcron" 2>/dev/null
+sed -i 's/$DCRON_OPTS.*/$DCRON_OPTS"/g' "$target/etc/init.d/dcron"
+
 chmod +x "$target"/etc/init.d/* 2>/dev/null
 
 ##remove/fixup any incompatabilites
