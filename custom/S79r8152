@@ -1,9 +1,15 @@
 #!/bin/sh
-#sleep 10
-nics="$(dmesg | grep r8152 | grep eth | cut -d\  -f7 | cut -d: -f1 | sort -u)"
+
+nics="$(ls /sys/class/net/ | grep eth)"
+
+#fixups to make sure nics are detected appropriately
+
 for x in $nics
 do
-# ethtool -s $x autoneg on advertise 0x802f
- ifup $x 2>/dev/null
+ driver="$(readlink /sys/class/net/eth3/device/driver/module | xargs basename)"
+ if [ "$driver" == "r8152" ] ; then
+   ethtool -s $x autoneg on advertise 0x802f
+   ifup $x 2>/dev/null
+ fi
 done
 exit 0
