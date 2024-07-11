@@ -18,6 +18,9 @@ mkdir -p "$workdir"
 cp "$BINARIES_DIR"/syslinux/*.c32 "$workdir"
 cp "$BINARIES_DIR"/bzImage "$workdir"
 
+##copy memtest binary
+cp "$BINARIES_DIR"/memtest.bin "$workdir"/memtest86
+
 usbimg="$BINARIES_DIR/usb.img"
 bootimg="$BINARIES_DIR/syslinux.img"
 
@@ -88,6 +91,10 @@ label Buildroot for Buffalo
       kernel /bzImage
       initrd /initrd.gz
       append root=PARTUUID=$rootpartID rw earlyprintk audit=0 rootwait console=ttyS0
+
+LABEL memtest+
+    MENU LABEL Memtest86+
+    LINUX /memtest86
 " > "$workdir/syslinux.cfg"
 
 ##copy syslinux files into it
