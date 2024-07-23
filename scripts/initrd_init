@@ -12,24 +12,39 @@ rootfsID="$(cat /UUID)"
 bootID="$(cat /bootUUID)"
 variant="$(cat /variant)"
 
+if [ "$variant" = "atom" ]; then
+  micon_ver=2
+  micon_port="/dev/ttyS1"
+fi
+
+if [ "$variant" = "alpine" ]; then
+  micon_ver=3
+  micon_port="/dev/ttyUSB0"
+fi
+
+if [ "$variant" = "denverton" ]; then
+  micon_ver=3
+  micon_port="/dev/ttyS0"
+fi
+
 ##initialize display
-if [ "$variant" == "alpine" ]; then
-  /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LED_ON 4","LED_OFF 3","LED_OFF 5","LCD_PUTS 0 Custom InitRD"
+if [ "$micon_ver" = "3" ]; then
+  /usr/bin/micro-evtd -p "$micon_port" -s3 "LED_ON 4","LED_OFF 3","LED_OFF 5","LCD_PUTS 0 Custom InitRD"
 fi
 
 sleep 1
 
 FORCESHELL=0
-if [ "$variant" == "alpine" ]; then
+if [ "$micon_ver" = "3" ]; then
   echo "Press FUNCTION button to force shell"
-  /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LCD_PUTS 0 Press Function","LCD_PUTS 1 For Shell"
-  timeout 5s dd if=/dev/ttyUSB0 count=5 2>/dev/null | grep -q FUNC
+  /usr/bin/micro-evtd -p "$micon_port" -s3 "LCD_PUTS 0 Press Function","LCD_PUTS 1 For Shell"
+  timeout 5s dd if="$micon_port" count=5 2>/dev/null | grep -q FUNC
   if [ $? -eq 0 ]; then
     FORCESHELL=1
-    /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LED_ON 3"
+    /usr/bin/micro-evtd -p "$micon_port" -s3 "LED_ON 3"
     echo "recovery shell requested"
   else
-    /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LCD_PUTS 0 Custom InitRD","LCD_PUTS 1 Finding ROOTFS"
+    /usr/bin/micro-evtd -p "$micon_port" -s3 "LCD_PUTS 0 Custom InitRD","LCD_PUTS 1 Finding ROOTFS"
   fi
 fi
 
@@ -40,15 +55,15 @@ ROOTDEV="$(blkid -U "$rootfsID")"
 BOOTDEV="$(blkid -U "$bootID")"
 
 ##if they were not found do a more intrusive search
-if [ "$ROOTDEV" == "" ] || [ "$BOOTDEV" == "" ]; then
+if [ "$ROOTDEV" = "" ] || [ "$BOOTDEV" = "" ]; then
 
   ##we might still be waiting for some devices to show up, wait a few sec just in case.
   sleep 5
 
   ##mdadm autostart doesn't seem to work even with metadata 0.90
   ##for now start any arrays present and try again.
-  if [ "$variant" == "alpine" ]; then
-    /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LED_ON 3","LCD_PUTS 1 Scanning MDADM"
+  if [ "$micon_ver" = "3" ]; then
+    /usr/bin/micro-evtd -p "$micon_port" -s3 "LED_ON 3","LCD_PUTS 1 Scanning MDADM"
   fi
   echo "failed to find rootfs, trying mdadm"
   echo ""
@@ -60,16 +75,16 @@ if [ "$ROOTDEV" == "" ] || [ "$BOOTDEV" == "" ]; then
   BOOTDEV="$(blkid -U "$bootID")"
   ROOTDEV="$(blkid -U "$rootfsID")"
 
-  if [ "$ROOTDEV" == "" ]; then
+  if [ "$ROOTDEV" = "" ]; then
     echo "failed to find rootfs"
   fi
 fi
 
 ###could cache conf in /boot...we know where that will be.
 
-if [ "$ROOTDEV" == "" ] || [ $FORCESHELL -eq 1 ]; then
-  if [ "$variant" == "alpine" ]; then
-    /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LED_OFF 4","LCD_PUTS 0 Custom InitRD","LCD_PUTS 1 Recovery Shell"
+if [ "$ROOTDEV" = "" ] || [ $FORCESHELL -eq 1 ]; then
+  if [ "$micon_ver" = "3" ]; then
+    /usr/bin/micro-evtd -p "$micon_port" -s3 "LED_OFF 4","LCD_PUTS 0 Custom InitRD","LCD_PUTS 1 Recovery Shell"
   fi
   echo "dropping to a shell"
   echo ""
@@ -81,8 +96,8 @@ else
   mount -o ro "$ROOTDEV" /mnt/root 2>/dev/null
   mount "$BOOTDEV" /mnt/root/boot 2>/dev/null
 fi
-if [ "$variant" == "alpine" ]; then
-  /usr/bin/micro-evtd -p /dev/ttyUSB0 -s3 "LCD_PUTS 1 Attempting Boot"
+if [ "$micon_ver" = "3" ]; then
+  /usr/bin/micro-evtd -p "$micon_port" -s3 "LCD_PUTS 1 Attempting Boot"
 fi
 umount /dev /proc /sys
 mount -t devtmpfs none /mnt/root/dev
