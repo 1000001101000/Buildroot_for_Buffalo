@@ -156,6 +156,15 @@ cd - >/dev/null || exit 1
 
 ##compress the initrd image.
 gzip -n "$BINARIES_DIR/initrd"
+
+if [ -d "$TARGET_DIR/lib/firmware/intel-ucode" ]; then
+	DSTDIR="kernel/x86/microcode"
+	mkdir -p "$TARGET_DIR/$DSTDIR"
+        cat "$TARGET_DIR/lib/firmware/intel-ucode"/* > "$TARGET_DIR/$DSTDIR/GenuineIntel.bin"
+	echo "./$DSTDIR/GenuineIntel.bin" | cpio -D "$TARGET_DIR" -o -H newc > "$BINARIES_DIR/ucode.cpio"
+	mv "$BINARIES_DIR/initrd.gz" "$BINARIES_DIR/initrd.orig"
+	cat "$BINARIES_DIR/ucode.cpio" "$BINARIES_DIR/initrd.orig" > "$BINARIES_DIR/initrd.gz"
+fi
 }
 
 pad_dtbs()
@@ -165,4 +174,31 @@ pad_dtbs()
   do
     dtc -I dtb -O dtb -p 10240 -o "$x" "$x"
   done
+}
+
+syslinux_cfg()
+{
+echo "
+ui menu.c32
+MENU TITLE Buildroot for Buffalo
+DEFAULT buildroot
+TIMEOUT 50
+
+label Buildroot for Buffalo
+      menu label Buildroot $BR2_VERSION
+      menu default
+      kernel /bzImage
+      initrd /initrd.gz
+      append root=PARTUUID=$rootpartID $kernelcmd
+
+label Buildroot for Buffalo
+      menu label Buildroot $BR2_VERSION (serial console)
+      kernel /bzImage
+      initrd /initrd.gz
+      append root=PARTUUID=$rootpartID $kernelcmd console=ttyS0
+
+LABEL memtest+
+    MENU LABEL Memtest86+
+    LINUX /memtest86
+" > "$workdir/syslinux.cfg"
 }

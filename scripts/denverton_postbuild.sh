@@ -3,6 +3,7 @@
 ##import common functions
 . ../scripts/functions.sh
 
+kernelcmd="rw earlyprintk audit=0 rootwait pcie_aspm=off"
 rootimg="$BINARIES_DIR/rootfs.ext2"
 
 workdir="$BINARIES_DIR/boottmp"
@@ -73,29 +74,7 @@ generate_initrd "denverton" "$rootfsID" "$bootID"
 cp "$BINARIES_DIR"/initrd.gz "$workdir"
 
 ## generate syslinux.cfg
-echo "
-ui menu.c32
-MENU TITLE Buildroot for Buffalo
-DEFAULT buildroot
-TIMEOUT 50
-
-label Buildroot for Buffalo
-      menu label Buildroot $BR2_VERSION
-      menu default
-      kernel /bzImage
-      initrd /initrd.gz
-      append root=PARTUUID=$rootpartID rw earlyprintk audit=0 rootwait
-
-label Buildroot for Buffalo
-      menu label Buildroot $BR2_VERSION (serial console)
-      kernel /bzImage
-      initrd /initrd.gz
-      append root=PARTUUID=$rootpartID rw earlyprintk audit=0 rootwait console=ttyS0
-
-LABEL memtest+
-    MENU LABEL Memtest86+
-    LINUX /memtest86
-" > "$workdir/syslinux.cfg"
+syslinux_cfg
 
 ##copy syslinux files into it
 mcopy -s -i "$bootimg" "$workdir"/* ::/
