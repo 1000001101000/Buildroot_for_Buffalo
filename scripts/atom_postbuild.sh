@@ -19,6 +19,9 @@ mkdir -p "$workdir"
 cp "$BINARIES_DIR"/syslinux/*.c32 "$workdir"
 cp "$BINARIES_DIR"/bzImage "$workdir"
 
+##copy memtest binary
+cp "$BINARIES_DIR"/memtest.bin "$workdir"/memtest86
+
 usbimg="$BINARIES_DIR/usb.img"
 bootimg="$BINARIES_DIR/syslinux.img"
 

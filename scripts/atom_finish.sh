@@ -12,6 +12,8 @@ custom_module "gpio_it87ts-1.0"
 echo gpio-it87ts > "$target/etc/modules-load.d/gpio.conf"
 echo gpio-ich >> "$target/etc/modules-load.d/gpio.conf"
 
+stage_module gpio-it87ts
+
 ##byobu
 debian_import byobu bookworm all main
 

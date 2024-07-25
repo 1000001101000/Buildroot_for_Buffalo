@@ -1,9 +1,51 @@
 #!/bin/busybox sh
 # shellcheck shell=dash
 
+lcd_put()
+{
+  line1="$1                "
+  line2="$2                "
+  line1="$(echo "$line1" | head -c 16)"
+  line2="$(echo "$line2" | head -c 16)"
+  if [ "$micon_ver" = "3" ]; then
+    /usr/bin/micro-evtd -q -p "$micon_port" -s3 "LCD_PUTS 0 $line1","LCD_PUTS 1 $line2"
+  fi
+  if [ "$micon_ver" = "2" ]; then
+    /usr/bin/micro-evtd -q -p "$micon_port" -s 2090$(printf "$line1$line2" | xxd -p -c80),0025,013220,013aff
+  fi
+}
+
+lcd_color()
+{
+  red=0
+  green=0
+  blue=0
+  [ "$1" = "red" ] && red=1
+  [ "$1" = "green" ] && green=1
+  [ "$1" = "blue" ] && blue=1
+  [ "$1" = "orange" ] && green=1 && red=1
+  [ "$1" = "cyan" ] && green=1 && blue=1
+  [ "$1" = "purple" ] && blue=1 && red=1
+
+  if [ "$micon_ver" = "2" ]; then
+    ## set LCD color green
+    color=$((red+green*2+blue*4))
+    /usr/bin/micro-evtd -q -p "$micon_port" -s 02500007,0251000$color
+  fi
+  if [ "$micon_ver" = "3" ]; then
+    if [ $red -eq 1 ]; then red="LED_ON"; else red="LED_OFF"; fi
+    if [ $green -eq 1 ]; then green="LED_ON"; else green="LED_OFF"; fi
+    if [ $blue -eq 1 ]; then blue="LED_ON"; else blue="LED_OFF"; fi
+    /usr/bin/micro-evtd -p "$micon_port" -s3 "$red 3","$green 4","$blue 5"
+  fi
+}
+
 /bin/mount -t proc none /proc
 /bin/mount -t sysfs none /sys
 /bin/mount -t devtmpfs none /dev
+
+##load any modules that made it to the initrd
+find /lib/modules/$(uname -r)/ -name *.ko | xargs -n1 insmod
 
 ##grab fs UUIDs set at build time
 ##may create enhancement in future to re-gen and update/cache other values.
@@ -11,6 +53,8 @@
 rootfsID="$(cat /UUID)"
 bootID="$(cat /bootUUID)"
 variant="$(cat /variant)"
+
+micon_ver=""
 
 if [ "$variant" = "atom" ]; then
   micon_ver=2
@@ -27,25 +71,72 @@ if [ "$variant" = "denverton" ]; then
   micon_port="/dev/ttyS0"
 fi
 
-##initialize display
-if [ "$micon_ver" = "3" ]; then
-  /usr/bin/micro-evtd -p "$micon_port" -s3 "LED_ON 4","LED_OFF 3","LED_OFF 5","LCD_PUTS 0 Custom InitRD"
+if [ "$micon_ver" = "2" ]; then
+  ##enable serial console on Terastation II Pro, Terastation III, Terastation 3000... probably others
+  /usr/bin/micro-evtd -q -p "$micon_port" -s  000f,000f,000f
+  ##clear LEDs and set power LED
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 0250090f96,02520000ac,02510d00a0
 fi
 
-sleep 1
+lcd_put " Custom InitRD  " "                "
+lcd_color "green"
 
+## press enter?
 FORCESHELL=0
+
+echo "Press ENTER button to force shell"
+read -t 5 && FORCESHELL=1 && echo "force via terminal input"
+
+#kind of pointless since if you have a console and keyboard you really don't need to press func.
+#POC for future, maybe ssh or some other behavior.
+echo "Press FUNCTION button to force shell"
+lcd_put " Press Function " "   For Shell    "
+
+##I think they all use micon for function button
 if [ "$micon_ver" = "3" ]; then
-  echo "Press FUNCTION button to force shell"
-  /usr/bin/micro-evtd -p "$micon_port" -s3 "LCD_PUTS 0 Press Function","LCD_PUTS 1 For Shell"
-  timeout 5s dd if="$micon_port" count=5 2>/dev/null | grep -q FUNC
-  if [ $? -eq 0 ]; then
-    FORCESHELL=1
-    /usr/bin/micro-evtd -p "$micon_port" -s3 "LED_ON 3"
-    echo "recovery shell requested"
+  timeout 5s dd if="$micon_port" count=5 2>/dev/null | grep -q FUNC && FORCESHELL=1 && echo "force via micon3 button"
+fi
+
+if [ "$micon_ver" = "2" ]; then
+  if [ "$variant" = "atom" ]; then
+    gpiobase="$(cat "$(grep -l it87 /sys/class/gpio/gpiochip*/label | xargs dirname)/base")"
+    echo $((gpiobase+20)) > /sys/class/gpio/export
+    gpio="$(ls /sys/class/gpio/ | grep it87)"
+    x=0
+    while [ $x -lt 500 ]; do
+      val=$(cat /sys/class/gpio/$gpio/value)
+      ##default 1
+      if [ $val -eq 0 ]; then
+        FORCESHELL=1
+        echo "force via it87 gpio"
+        break
+      fi
+      sleep 0.01
+      x=$((x+1))
+    done
   else
-    /usr/bin/micro-evtd -p "$micon_port" -s3 "LCD_PUTS 0 Custom InitRD","LCD_PUTS 1 Finding ROOTFS"
+    ##is function always the same bitfield-wise? if not lots of complex logic, or just look for any button?
+    while [ $x -lt 500 ]; do
+      val="$(/usr/bin/micro-evtd -q -p "$micon_port" -s 8036)"
+      ##xor out desired button?
+      if [ $val = "???" ]; then
+        FORCESHELL=1
+        echo "force via miconv2 button"
+        break
+      fi
+      sleep 0.01
+      x=$((x+1))
+    done
   fi
+fi
+
+if [ $FORCESHELL -eq 1 ]; then
+  echo "recovery shell requested"
+  lcd_put " Recovery Shell " "   Requested    "
+  lcd_color "orange"
+
+else
+  lcd_put " Custom InitRD  " " Finding ROOTFS "
 fi
 
 echo "custom initrd, looking for rootfs"
@@ -62,9 +153,9 @@ if [ "$ROOTDEV" = "" ] || [ "$BOOTDEV" = "" ]; then
 
   ##mdadm autostart doesn't seem to work even with metadata 0.90
   ##for now start any arrays present and try again.
-  if [ "$micon_ver" = "3" ]; then
-    /usr/bin/micro-evtd -p "$micon_port" -s3 "LED_ON 3","LCD_PUTS 1 Scanning MDADM"
-  fi
+  #if [ "$micon_ver" = "3" ]; then
+  #  /usr/bin/micro-evtd -p "$micon_port" -s3 "LED_ON 3","LCD_PUTS 1 Scanning MDADM"
+  #fi
   echo "failed to find rootfs, trying mdadm"
   echo ""
   mkdir -p /run/mdadm
@@ -83,9 +174,8 @@ fi
 ###could cache conf in /boot...we know where that will be.
 
 if [ "$ROOTDEV" = "" ] || [ $FORCESHELL -eq 1 ]; then
-  if [ "$micon_ver" = "3" ]; then
-    /usr/bin/micro-evtd -p "$micon_port" -s3 "LED_OFF 4","LCD_PUTS 0 Custom InitRD","LCD_PUTS 1 Recovery Shell"
-  fi
+  lcd_put " Custom InitRD  " " Recovery Shell "
+  lcd_color "red"
   echo "dropping to a shell"
   echo ""
   echo "mount your rootfs on /mnt/root then type 'exit' to continue boot"
@@ -96,9 +186,9 @@ else
   mount -o ro "$ROOTDEV" /mnt/root 2>/dev/null
   mount "$BOOTDEV" /mnt/root/boot 2>/dev/null
 fi
-if [ "$micon_ver" = "3" ]; then
-  /usr/bin/micro-evtd -p "$micon_port" -s3 "LCD_PUTS 1 Attempting Boot"
-fi
+
+lcd_put " Custom InitRD  " "Attempting Boot "
+
 umount /dev /proc /sys
 mount -t devtmpfs none /mnt/root/dev
 

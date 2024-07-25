@@ -47,7 +47,7 @@ debian_import()
 custom_module()
 {
         local mod_dir="$custom_dir/$1"
-        local kver="$(ls $BUILD_DIR | grep -e ^linux-headers- | sed 's/linux-headers-//g')"
+        local kver="$(ls $BUILD_DIR | grep -e ^linux-[1-9] | sed 's/linux-//g')"
         local kernel_dir="$BUILD_DIR/linux-$kver"
         local cross="$HOST_DIR/bin/$(ls output/host/bin/ | grep -e '^.*buildroot.*gcc$' | sed 's/...$//g')"
 
@@ -103,7 +103,7 @@ rm -r "$workdir" 2>/dev/null
 mkdir "$workdir"
 
 ##create some directories that will be needed.
-mkdir -p "$workdir"/{boot,proc,sys,dev,mnt/root,bin,lib,sbin,usr/bin}
+mkdir -p "$workdir"/{boot,proc,sys,dev,mnt/root,bin,lib,sbin,usr/bin,lib/modules}
 
 #copy in init and make sure executable
 cp ../scripts/initrd_init "$workdir/init"
@@ -144,10 +144,17 @@ done
 ln -s "/lib" "$workdir/lib64"
 
 #create symlinks for some needed commands
-for x in mount umount switch_root sh cat sleep getty watch vi ip mkdir login cd ls chmod sed awk grep dd
+for x in mount umount switch_root sh cat sleep getty watch vi ip mkdir login cd ls chmod sed awk grep dd xxd printf head xargs dirname find uname insmod
 do
   ln -s /bin/busybox "$workdir/bin/$x"
 done
+
+##pull in any staged modules
+cd "$BINARIES_DIR/modules/"
+if [ $? -eq 0 ]; then
+  rsync -vr * "$workdir/"
+  cd -
+fi
 
 #create a cpio archive of the directory for use as an initramfs
 cd "$workdir" || exit 1
@@ -201,4 +208,12 @@ LABEL memtest+
     MENU LABEL Memtest86+
     LINUX /memtest86
 " > "$workdir/syslinux.cfg"
+}
+
+stage_module()
+{
+  mkdir "$BINARIES_DIR/modules/" 2>/dev/null
+  cd "$TARGET_DIR"
+  find lib/ -name $1.ko | xargs -I{} rsync -vR {} "$BINARIES_DIR/modules/"
+  cd -
 }
