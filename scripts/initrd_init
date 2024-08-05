@@ -45,7 +45,9 @@ lcd_color()
 /bin/mount -t devtmpfs none /dev
 
 ##load any modules that made it to the initrd
-find /lib/modules/$(uname -r)/ -name *.ko | xargs -n1 insmod
+if [ -d "/lib/modules/$(uname -r)/" ]; then
+  find /lib/modules/$(uname -r)/ -name *.ko | xargs -n1 insmod
+fi
 
 ##grab fs UUIDs set at build time
 ##may create enhancement in future to re-gen and update/cache other values.
