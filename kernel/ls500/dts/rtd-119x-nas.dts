@@ -1,0 +1,182 @@
+/*
+ *
+ */
+
+/dts-v1/;
+
+#include "../../mach-rtk119x/include/mach/memory.h"
+
+/memreserve/ SYS_BOOTCODE_MEMBASE	SYS_BOOTCODE_MEMSIZE;				/* ROM code */
+/memreserve/ 0x0000c000			0xf4000;
+/memreserve/ 0x17fff000			0x1000;
+/memreserve/ RBUS_BASE_PHYS		0x100000;						/* R-bus */
+/memreserve/ PLAT_NOR_BASE_PHYS 	PLAT_NOR_SIZE;						/* NOR */
+/memreserve/ PLAT_AUDIO_BASE_PHYS 	PLAT_AUDIO_SIZE;					/* Audio Firmware */
+/memreserve/ RPC_RINGBUF_PHYS 		RPC_RINGBUF_SIZE;					/* RPC ring buffer */
+/memreserve/ PLAT_SECURE_BASE_PHYS PLAT_SECURE_SIZE; /* SECURE */
+/memreserve/ ION_AUDIO_HEAP_PHYS    ION_AUDIO_HEAP_SIZE;
+///memreserve/ ION_MEDIA_HEAP_PHYS1   ION_MEDIA_HEAP_SIZE1;
+///memreserve/ ION_MEDIA_HEAP_PHYS2   ION_MEDIA_HEAP_SIZE2;
+///memreserve/ ION_MEDIA_HEAP_PHYS3   ION_MEDIA_HEAP_SIZE3;
+///memreserve/ ION_MEDIA_HEAP_PHYS4   ION_MEDIA_HEAP_SIZE4;
+
+/include/ "rtd-119x-irT377.dtsi"
+/include/ "rtd-119x.dtsi"
+/include/ "rtd-119x-dvfs-1ghz-gpio.dtsi"
+
+
+/ {
+	model= "Realtek_CA7_CA7";
+	compatible = "Realtek,FPGA_v6", "Realtek,rtd-119x";
+
+	aliases {
+		serial0 = &uart0;
+	};
+
+	chosen {
+		bootargs = "earlyprintk console=ttyS0,115200 ";
+	};
+
+	memory {
+		device_type = "memory";
+		reg =  <0x00000000 0x10000000>;					/* 256 MB */
+	};
+
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <0x18000000 0x70000>;
+		compatible = "simple-bus";
+		device_type = "soc";
+		ranges;
+
+	};
+	rtk,ion {
+		compatible = "Realtek,rtk-ion";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		rtk,ion-heap@0 {	/* SYSTEM_HEAP */
+			compatible = "Realtek,rtk-ion-reserve";
+			reg = <0>;
+			rtk,memory-reservation-size = <0x0>;
+		};
+		rtk,ion-heap@1 {	/* System contig */
+			compatible = "Realtek,rtk-ion-reserve";
+			reg = <1>;
+			rtk,memory-reservation-size = <0x0>;
+		};
+		rtk,ion-heap@4 {	/* DMA_HEAP */
+			compatible = "Realtek,rtk-ion-reserve";
+			reg = <4>;
+			rtk,memory-reservation-size = <0x0>;
+		};
+		rtk,ion-heap@8 {	/* Audio */
+			compatible = "Realtek,rtk-ion-reserve";
+			reg = <8>;
+            rtk,memory-reserve = <
+                ION_AUDIO_HEAP_PHYS ION_AUDIO_HEAP_SIZE ION_AUDIO_HEAP_FLAG
+                >;
+		};
+		rtk,ion-heap@7 {	/* TYPE_MEDIA */
+			compatible = "Realtek,rtk-ion-reserve";
+			reg = <7>;
+            rtk,memory-reserve = <
+                ION_MEDIA_HEAP_PHYS1 ION_MEDIA_HEAP_SIZE1 ION_MEDIA_HEAP_FLAG1
+                ION_MEDIA_HEAP_PHYS2 ION_MEDIA_HEAP_SIZE2 ION_MEDIA_HEAP_FLAG2
+                ION_MEDIA_HEAP_PHYS3 ION_MEDIA_HEAP_SIZE3 ION_MEDIA_HEAP_FLAG3
+                ION_MEDIA_HEAP_PHYS4 ION_MEDIA_HEAP_SIZE4 ION_MEDIA_HEAP_FLAG4
+                >;
+		};
+	};
+	fb {
+		compatible = "Realtek,rtk-fb";
+		buffer-cnt = <3>;
+		resolution = <1280 720>;
+		fps = <60>;
+	};
+	timer0@1801b000 {
+		clock-frequency = <27000000>;
+	};
+	timer1@1801b000 {
+		clock-frequency = <27000000>;
+	};
+	uart0: serial0@18007800 {
+		clock-frequency = <27000000>;
+	};
+	uart1: serial1@1801B200 {
+		clock-frequency = <432000000>;
+	};
+
+	rtk_misc_gpio: rtk_misc_gpio@1801b100 {
+		gpios =
+		//<&rtk_misc_gpio 4 0 0>, 				/*install button, input, default N/A */
+		//<&rtk_misc_gpio 53 1 1>, 				/*HDD1 power , output, default high */
+		<&rtk_misc_gpio 5 1 1>; 				/*usb3 power , output, default high */
+		//<&rtk_misc_gpio 8 1 1>; 				/*audio dac unmute , output, default high */
+	};
+
+	rtk_iso_gpio: rtk_iso_gpio@18007100 {
+		gpios = <&rtk_iso_gpio 13 1 1>; 			/*usb2 power , output, default high */
+			//<&rtk_iso_gpio 8 0 0>; 				/*bt host wake up , output, default high */
+	};
+	nic: gmac@18016000 {
+		rtl-features = <6>;
+//		mac-address = [00 10 20 30 40 50];
+		status = "okay";
+	};
+	usb_ss: rtk_dwc3@18013200 {
+		dwc3@18020000 {
+			dr_mode = "host";
+		};
+	};
+	suspend@18007400 {
+		compatible = "Realtek,suspend";
+//		realtek,wifi-gpio = <&rtk_iso_gpio 13 1 1>;		/*wifi power , output, default high */
+
+		wakeup-gpio-enable = <1>; /* (0) disable (1) enable */
+//		wakeup-gpio-list =  <&rtk_iso_gpio 12 0 0>; /* list : <&rtk_iso_gpio {num} {force input (2) } {default N/A (0)] }> */
+//		wakeup-gpio-activity = <0>; /* (0) low activity (1) high activity */
+
+		wakeup-flags = <0xc>; // Bits [4] timer [3]RTC [2]gpio [1]ir [0]lan
+		status = "okay";
+
+	};
+
+
+	bt@0{   /* GPIO for rtk_rfkill to disable/enable BT */
+		compatible = "Realtek,bt";
+		gpios =
+			<&rtk_iso_gpio 2 1 0>;          /*bt enable , output, default low */
+		status = "disabled";
+	};
+	virt_input@0 {
+		compatible = "Realtek,virt-input";
+		realtek,virt-input-gpio = <&rtk_iso_gpio 20 0 0>;
+		interrupt-parent = <&rtk_iso_gpio>;
+		interrupts = <20>;
+	};
+	rtc {
+
+		compatible = "Realtek,rtk119x-rtc";
+		reg = <0x1801b600 0x34>, <0x18007000 0xdc>;
+		rtc-base-year = <2014>;
+        };
+	nas_led_indicator {
+		compatible = "Realtek,nas-led-indicator";
+		error_event = "firmware_corrupted", "incorrect_fan_speed", "high_temperature", "RAID_error", "mount_RAID_fail", "bad_sectors", "disk_connect_fail", "mount_disk_fail", "disk_broken", "ups_error";
+		infor_event = "format_RAID", "create_RAID", "rebuild_RAID", "erase_RAID", "check_disk", "format_disk", "erase_disk", "init_system", "update_FW", "format_USB", "migrate_RAID", "new_firmware", "degraded_RAID", "backup00_fail", "backup01_fail", "backup02_fail", "backup03_fail", "backup04_fail", "backup05_fail", "backup06_fail", "backup07_fail", "backup08_fail";
+        };
+	nas_uas_support {
+		compatible = "Realtek,nas-uas-support";
+		fixed_port = <1>;		/* 0: uas always be enabled; 1: enabled by fixed_port_number */
+		fixed_port_number = "1.1","1.2";
+	};
+
+	nas_rtk_hub_params {
+		compatible = "Realtek,nas-rtk-hub-params";
+		applied_port = <0x4>; /* only apply to port3*/
+	};
+
+};

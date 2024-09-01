@@ -1,0 +1,17 @@
+#!/sbin/openrc-run
+
+description="Micon Startup Tasks"
+
+depend()
+{
+	after clock root procfs
+	use modules devfs
+}
+
+start()
+{
+  ebegin
+  echo "micon startup"
+  /usr/bin/startup_wrapper.sh
+  eend
+}

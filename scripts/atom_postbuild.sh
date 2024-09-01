@@ -1,96 +1,28 @@
 #!/bin/bash
 
+kernelcmd="rw earlyprintk audit=0 rootwait"
+bootfs_type="fat32"
+rootfs_type="ext4"
+
 ##import common functions
 . ../scripts/functions.sh
 
-kernelcmd="rw earlyprintk audit=0 rootwait"
-rootimg="$BINARIES_DIR/rootfs.ext2"
-
-workdir="$BINARIES_DIR/boottmp"
-rootfsID="$(blkid -o value -s UUID $rootimg)"
-
-##cleanup previous run if needed
-rm -r "$workdir" 2>/dev/null
-
-##create working directory
-mkdir -p "$workdir"
-
-## copy in syslinux binaries and kernel
-cp "$BINARIES_DIR"/syslinux/*.c32 "$workdir"
-cp "$BINARIES_DIR"/bzImage "$workdir"
-
-##copy memtest binary
-cp "$BINARIES_DIR"/memtest.bin "$workdir"/memtest86
-
-usbimg="$BINARIES_DIR/usb.img"
-bootimg="$BINARIES_DIR/syslinux.img"
-
-rootsize="$(du --apparent-size -BM "$rootimg" | cut -dM -f1)"
-bootsize="100"
-disksize="$((rootsize+bootsize+100))"
-
-## generate the raw images
-dd if=/dev/zero of="$usbimg" bs=1M count="$disksize" 2>/dev/null
-if [ $? -ne 0 ]; then "create image failed"; exit 99; fi
-
-dd if=/dev/zero of="$bootimg" bs=1M count="$bootsize" 2>/dev/null
-if [ $? -ne 0 ]; then "create image failed"; exit 99; fi
-
-##format boot image as vfat
-mformat -F -i "$bootimg" ::
-
-bootID="$(blkid -o value -s UUID $bootimg)"
-
-##create boot and rootfs partitions
-sgdisk -n 1:0:+"$bootsize"M "$usbimg" >/dev/null
-sgdisk -n 2:0 "$usbimg" >/dev/null
-
-##set boot and rootfs partition types
-sgdisk -t 1:8300 "$usbimg" >/dev/null
-sgdisk -t 2:8300 "$usbimg" >/dev/null
-
-#set boot fs as "bootable" so syslinux can use it
-sgdisk "$usbimg" --attributes=1:set:2  >/dev/null
-
-#get sector size of partition table, should always be 512
-sectorsz="$(sgdisk -p "$usbimg" | grep 'Sector size (logical):' | gawk '{print $4}')"
-
-#get starting sector for boot, should be 2048
-bootstart="$(sgdisk -i 1 "$usbimg" | grep 'First sector:' | gawk '{print $3}')"
-
-#get starting sector for rootfs
-rootstart="$(sgdisk -i 2 "$usbimg" | grep 'First sector:' | gawk '{print $3}')"
-
-##grab partUUID for boot parameter
-rootpartID="$(sgdisk -i 2 "$usbimg" | grep 'Partition unique GUID:' | gawk '{print $4}')"
-
-if [ -z "$sectorsz" ] || [ -z "$bootstart" ] || [ -z "$rootstart" ] || [ -z "$rootpartID" ]; then
-  echo "failed to determine parition information"
-  exit 99
-fi
+bootfs_prep
 
 generate_initrd "atom" "$rootfsID" "$bootID"
 
-cp "$BINARIES_DIR"/initrd.gz "$workdir"
+bootfs_copy "$BINARIES_DIR/initrd.gz"
+bootfs_copy "$BINARIES_DIR/bzImage"
+bootfs_copy "$BINARIES_DIR/memtest.bin" "memtest86"
 
-## generate syslinux.cfg
-syslinux_cfg
+##generate syslinux config and copy in binaries.
+syslinux_setup
 
-##copy syslinux files into it
-mcopy -s -i "$bootimg" "$workdir"/* ::/
+create_bootfs
 
-## install syslinux loader to boot filesystem header
-syslinux --install "$bootimg"
+create_image
 
-##write boot fs into image
-dd if="$bootimg" of="$usbimg" bs="$sectorsz" seek="$bootstart" conv=notrunc 2>/dev/null
-if [ $? -ne 0 ]; then "write boot image failed"; exit 99; fi
+##install bootloader to gtp/mbr
+syslinux_install
 
-###write rootfs into image
-dd if="$rootimg" of="$usbimg" bs="$sectorsz" seek="$rootstart" conv=notrunc 2>/dev/null
-if [ $? -ne 0 ]; then "write boot image failed"; exit 99; fi
-
-##write syslinux boot record to partition table.
-dd bs=440 count=1 if="$BINARIES_DIR/syslinux/gptmbr.bin" of="$usbimg" conv=notrunc 2>/dev/null
-if [ $? -ne 0 ]; then "write mbr image failed"; exit 99; fi
-sync
+exit 0

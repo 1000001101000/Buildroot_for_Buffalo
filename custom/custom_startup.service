@@ -1,0 +1,11 @@
+[Unit]
+Description=Custom setup items for buffalo devices
+Wants=network-online.target                                                                                  
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/startup_wrapper.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,139 @@
+/*
+ *
+ */
+
+/dts-v1/;
+
+#include "../../mach-rtk119x/include/mach/memory.h"
+
+/memreserve/ SYS_BOOTCODE_MEMBASE	SYS_BOOTCODE_MEMSIZE;				/* ROM code */
+/memreserve/ 0x0000c000			0xf4000;
+/memreserve/ 0x17fff000			0x1000;
+/memreserve/ RBUS_BASE_PHYS		0x100000;						/* R-bus */
+/memreserve/ PLAT_NOR_BASE_PHYS 	PLAT_NOR_SIZE;						/* NOR */
+/memreserve/ PLAT_AUDIO_BASE_PHYS 	PLAT_AUDIO_SIZE;					/* Audio Firmware */
+/memreserve/ RPC_RINGBUF_PHYS 		RPC_RINGBUF_SIZE;					/* RPC ring buffer */
+/memreserve/ PLAT_SECURE_BASE_PHYS PLAT_SECURE_SIZE; /* SECURE */
+/memreserve/ ION_AUDIO_HEAP_PHYS    ION_AUDIO_HEAP_SIZE;
+///memreserve/ ION_MEDIA_HEAP_PHYS1   ION_MEDIA_HEAP_SIZE1;
+///memreserve/ ION_MEDIA_HEAP_PHYS2   ION_MEDIA_HEAP_SIZE2;
+///memreserve/ ION_MEDIA_HEAP_PHYS3   ION_MEDIA_HEAP_SIZE3;
+///memreserve/ ION_MEDIA_HEAP_PHYS4   ION_MEDIA_HEAP_SIZE4;
+
+/include/ "rtd-119x.dtsi"
+
+
+/ {
+	model= "Realtek_CA7_CA7";
+	compatible = "Realtek,FPGA_v6", "Realtek,rtd-119x";
+
+	aliases {
+		serial0 = &uart0;
+	};
+
+	chosen {
+		bootargs = "root=/dev/sdc2 rw earlyprintk console=ttyS0,115200 rootwait";
+	        linux,initrd-start = <0x02200000>;
+		linux,initrd-end = <0x02600000>;
+	};
+
+	memory {
+		device_type = "memory";
+		reg =  <0x00000000 0x10000000>;					/* 256 MB */
+	};
+
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <0x18000000 0x70000>;
+		compatible = "simple-bus";
+		device_type = "soc";
+		ranges;
+
+	};
+	rtk,ion {
+		compatible = "Realtek,rtk-ion";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		rtk,ion-heap@0 {	/* SYSTEM_HEAP */
+			compatible = "Realtek,rtk-ion-reserve";
+			reg = <0>;
+			rtk,memory-reservation-size = <0x0>;
+		};
+		rtk,ion-heap@1 {	/* System contig */
+			compatible = "Realtek,rtk-ion-reserve";
+			reg = <1>;
+			rtk,memory-reservation-size = <0x0>;
+		};
+		rtk,ion-heap@4 {	/* DMA_HEAP */
+			compatible = "Realtek,rtk-ion-reserve";
+			reg = <4>;
+			rtk,memory-reservation-size = <0x0>;
+		};
+		rtk,ion-heap@8 {	/* Audio */
+			compatible = "Realtek,rtk-ion-reserve";
+			reg = <8>;
+            rtk,memory-reserve = <
+                ION_AUDIO_HEAP_PHYS ION_AUDIO_HEAP_SIZE ION_AUDIO_HEAP_FLAG
+                >;
+		};
+		rtk,ion-heap@7 {	/* TYPE_MEDIA */
+			compatible = "Realtek,rtk-ion-reserve";
+			reg = <7>;
+            rtk,memory-reserve = <
+                ION_MEDIA_HEAP_PHYS1 ION_MEDIA_HEAP_SIZE1 ION_MEDIA_HEAP_FLAG1
+                ION_MEDIA_HEAP_PHYS2 ION_MEDIA_HEAP_SIZE2 ION_MEDIA_HEAP_FLAG2
+                ION_MEDIA_HEAP_PHYS3 ION_MEDIA_HEAP_SIZE3 ION_MEDIA_HEAP_FLAG3
+                ION_MEDIA_HEAP_PHYS4 ION_MEDIA_HEAP_SIZE4 ION_MEDIA_HEAP_FLAG4
+                >;
+		};
+	};
+	fb {
+		compatible = "Realtek,rtk-fb";
+		buffer-cnt = <3>;
+		resolution = <1280 720>;
+		fps = <60>;
+	};
+	timer0@1801b000 {
+		clock-frequency = <27000000>;
+	};
+	timer1@1801b000 {
+		clock-frequency = <27000000>;
+	};
+	uart0: serial0@18007800 {
+		clock-frequency = <27000000>;
+	};
+	uart1: serial1@1801B200 {
+		clock-frequency = <432000000>;
+	};
+
+	rtk_misc_gpio: rtk_misc_gpio@1801b100 {
+		gpios = 
+		//<&rtk_misc_gpio 4 0 0>, 				/*install button, input, default N/A */
+		//<&rtk_misc_gpio 53 1 1>, 				/*HDD1 power , output, default high */
+		<&rtk_misc_gpio 5 1 0>; 				/*usb3 power , output, default high */
+	};		
+
+	rtk_iso_gpio: rtk_iso_gpio@18007100 {
+		gpios = <&rtk_iso_gpio 13 1 0>; 			/*usb2 power , output, default high */
+	};
+	nic: gmac@18016000 {
+		rtl-features = <6>;
+		status = "okay";
+	};
+
+	irda@18007400 {
+		reg-ir-dpir = <60>;							/*IR detect interval, NEC default=50ms, should less than 100ms, and bigger than 9ms*/
+	};
+
+    thermal@18000310 {
+        status = "disabled";
+    };
+
+    hdmirx@1800F000 {
+        status = "disabled";
+    };
+
+};

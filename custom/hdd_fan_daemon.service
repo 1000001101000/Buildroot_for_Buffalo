@@ -1,0 +1,12 @@
+[Unit]
+Description=Custom Fan Service
+After=custom_startup.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/hdd_fan_daemon.py
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

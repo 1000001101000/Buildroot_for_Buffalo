@@ -1,0 +1,33 @@
+
+##stuff useful for all or nearly all devices
+
+##cheap stuff to help debugging etc.
+CONFIG_PRINTK_TIME=y
+
+##sensors classes
+CONFIG_HWMON=y
+
+##usb serial adapters 
+CONFIG_USB_SERIAL=y
+CONFIG_USB_SERIAL_CONSOLE=y
+CONFIG_USB_SERIAL_GENERIC=y
+CONFIG_USB_SERIAL_PL2303=y
+
+##usb disk stuff?
+CONFIG_USB_UAS=y
+
+##most of these setups use cheap usb or onboard flash
+##zwap is sufficient for most workloads to avoid using a flash partition. 
+CONFIG_ZSWAP=y
+
+##gpio/pinctrl
+CONFIG_PINCTRL=y
+CONFIG_GPIO_SYSFS=y
+
+##I have yet to see a device that needs optimize for size. 
+##(with the caveat that you may need to move your initrd to an approp address)
+##brief tests on Orion5x showed pretty large perf penalty for not using
+CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
+
+##can't say I've tested it much but some utils really don't like not having it
+CONFIG_IPV6=y

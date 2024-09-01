@@ -7,9 +7,14 @@ nics="$(ls /sys/class/net/ | grep eth)"
 for x in $nics
 do
  driver="$(readlink /sys/class/net/$x/device/driver/module | xargs basename)"
- if [ "$driver" == "r8152" ] ; then
+ if [ "$driver" = "r8152" ] ; then
    ethtool -s $x autoneg on advertise 0x802f
    ifup $x 2>/dev/null
  fi
+ grep -q "AQR112" /sys/class/net/$x/device/0*/uevent
+ if [ $? -eq 0 ]; then
+   ethtool -s $x autoneg on advertise 0x800000000028
+ fi
+#0x800000000028
 done
 exit 0

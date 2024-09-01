@@ -1,0 +1,8 @@
+[Match]
+Driver=atlantic
+
+[Link]
+NamePolicy=kernel database onboard slot path
+#MTUBytes=6000
+RxBufferSize=512
+TxBufferSize=512

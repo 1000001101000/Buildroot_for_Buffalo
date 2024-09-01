@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Buildroot -g6294728-dirty Configuration
+# Buildroot -g13eb565-dirty Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_HOST_GCC_AT_LEAST_4_9=y
@@ -544,7 +544,7 @@ BR2_LINUX_KERNEL_USE_DEFCONFIG=y
 # BR2_LINUX_KERNEL_USE_ARCH_DEFAULT_CONFIG is not set
 # BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG is not set
 BR2_LINUX_KERNEL_DEFCONFIG="buffalo_ts5010"
-BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES="../kernel/alpine/custom_configs"
+BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES="../kernel/debug_configs ../kernel/docker_configs ../kernel/general_hardware_configs ../kernel/iscsi_configs ../kernel/mdadm_configs ../kernel/r8152_configs ../kernel/alpine/custom_configs"
 BR2_LINUX_KERNEL_CUSTOM_LOGO_PATH=""
 BR2_LINUX_KERNEL_UIMAGE=y
 # BR2_LINUX_KERNEL_APPENDED_UIMAGE is not set
@@ -1154,6 +1154,7 @@ BR2_PACKAGE_QT6_ARCH_SUPPORTS=y
 # BR2_PACKAGE_WESTON is not set
 # BR2_PACKAGE_XORG7 is not set
 # BR2_PACKAGE_APITRACE is not set
+# BR2_PACKAGE_MUPDF is not set
 
 #
 # vte needs an OpenGL or an OpenGL-EGL/wayland backend
@@ -2192,10 +2193,7 @@ BR2_PACKAGE_PYTHON_NUMPY_ARCH_SUPPORTS=y
 # BR2_PACKAGE_PYTHON_PYLIBFTDI is not set
 # BR2_PACKAGE_PYTHON_PYLRU is not set
 # BR2_PACKAGE_PYTHON_PYMODBUS is not set
-
-#
-# python-pymupdf needs Xorg
-#
+# BR2_PACKAGE_PYTHON_PYMUPDF is not set
 # BR2_PACKAGE_PYTHON_PYMYSQL is not set
 # BR2_PACKAGE_PYTHON_PYNACL is not set
 # BR2_PACKAGE_PYTHON_PYNDIFF is not set
@@ -2449,6 +2447,7 @@ BR2_PACKAGE_LIBARCHIVE=y
 # BR2_PACKAGE_LIBARCHIVE_BSDTAR is not set
 # BR2_PACKAGE_LIBARCHIVE_BSDCPIO is not set
 # BR2_PACKAGE_LIBARCHIVE_BSDCAT is not set
+# BR2_PACKAGE_LIBARCHIVE_BSDUNZIP is not set
 # BR2_PACKAGE_LIBDEFLATE is not set
 # BR2_PACKAGE_LIBMSPACK is not set
 # BR2_PACKAGE_LIBSQUISH is not set
@@ -2511,6 +2510,7 @@ BR2_PACKAGE_LIBGPG_ERROR_SYSCFG="arm-unknown-linux-gnueabi"
 BR2_PACKAGE_LIBXCRYPT=y
 # BR2_PACKAGE_MBEDTLS is not set
 BR2_PACKAGE_NETTLE=y
+BR2_PACKAGE_LIBRESSL_ARCH_SUPPORTS=y
 BR2_PACKAGE_OPENSSL=y
 BR2_PACKAGE_LIBOPENSSL=y
 BR2_PACKAGE_LIBOPENSSL_TARGET_ARCH="linux-armv4"
@@ -3490,7 +3490,7 @@ BR2_PACKAGE_FIREWALLD=y
 # BR2_PACKAGE_FREESWITCH is not set
 # BR2_PACKAGE_FRR is not set
 # BR2_PACKAGE_GERBERA is not set
-# BR2_PACKAGE_GESFTPSERVER is not set
+BR2_PACKAGE_GESFTPSERVER=y
 # BR2_PACKAGE_GLOOX is not set
 # BR2_PACKAGE_GLORYTUN is not set
 
@@ -3583,7 +3583,7 @@ BR2_PACKAGE_NETCAT=y
 # BR2_PACKAGE_NETSTAT_NAT is not set
 
 #
-# NetworkManager needs udev /dev management and a glibc toolchain w/ headers >= 4.6, dynamic library, wchar, threads, gcc >= 4.9
+# NetworkManager needs udev /dev management and a glibc or musl toolchain w/ headers >= 4.6, dynamic library, wchar, threads, gcc >= 4.9
 #
 # BR2_PACKAGE_NFACCT is not set
 BR2_PACKAGE_NFTABLES=y
@@ -3621,11 +3621,7 @@ BR2_PACKAGE_OPEN_ISCSI=y
 # BR2_PACKAGE_OPEN_PLC_UTILS is not set
 # BR2_PACKAGE_OPENOBEX is not set
 # BR2_PACKAGE_OPENRESOLV is not set
-BR2_PACKAGE_OPENSSH=y
-BR2_PACKAGE_OPENSSH_CLIENT=y
-BR2_PACKAGE_OPENSSH_SERVER=y
-BR2_PACKAGE_OPENSSH_KEY_UTILS=y
-# BR2_PACKAGE_OPENSSH_SANDBOX is not set
+# BR2_PACKAGE_OPENSSH is not set
 # BR2_PACKAGE_OPENSWAN is not set
 # BR2_PACKAGE_OPENVPN is not set
 # BR2_PACKAGE_P910ND is not set

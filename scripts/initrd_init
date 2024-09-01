@@ -28,6 +28,7 @@ lcd_color()
   [ "$1" = "purple" ] && blue=1 && red=1
 
   if [ "$micon_ver" = "2" ]; then
+    [ "$variant" = "orion5x" ] && return
     ## set LCD color green
     color=$((red+green*2+blue*4))
     /usr/bin/micro-evtd -q -p "$micon_port" -s 02500007,0251000$color
@@ -58,7 +59,7 @@ variant="$(cat /variant)"
 
 micon_ver=""
 
-if [ "$variant" = "atom" ]; then
+if [ "$variant" = "atom" ] || [ "$variant" = "orion5x" ] || [ "$variant" = "mv78100" ]; then
   micon_ver=2
   micon_port="/dev/ttyS1"
 fi
@@ -75,9 +76,17 @@ fi
 
 if [ "$micon_ver" = "2" ]; then
   ##enable serial console on Terastation II Pro, Terastation III, Terastation 3000... probably others
-  /usr/bin/micro-evtd -q -p "$micon_port" -s  000f,000f,000f
+  sleep 2 ##trying to understand early failures of console cmd
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 0003
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 000f,000f
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 000f,000f
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 000f
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 000f
+  echo "console enabled" > /dev/console
   ##clear LEDs and set power LED
   /usr/bin/micro-evtd -q -p "$micon_port" -s 0250090f96,02520000ac,02510d00a0
+  ##grab starting button value, if it changes maybe they want a shell?
+  button_val="$(/usr/bin/micro-evtd -q -p "$micon_port" -s 8036)"
 fi
 
 lcd_put " Custom InitRD  " "                "
@@ -118,10 +127,11 @@ if [ "$micon_ver" = "2" ]; then
     done
   else
     ##is function always the same bitfield-wise? if not lots of complex logic, or just look for any button?
-    while [ $x -lt 500 ]; do
-      val="$(/usr/bin/micro-evtd -q -p "$micon_port" -s 8036)"
+    while [ $((x)) -lt 500 ]; do
+      break
+      button_val2="$(/usr/bin/micro-evtd -q -p "$micon_port" -s 8036)"
       ##xor out desired button?
-      if [ $val = "???" ]; then
+      if [ "$button_val" != "$button_val2" ]; then
         FORCESHELL=1
         echo "force via miconv2 button"
         break
