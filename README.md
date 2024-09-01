@@ -15,11 +15,11 @@ These images have some advantages over a more traditional distro like Debian, in
 1. Clone the repository
 2. Download the supported buildroot version to the root of the repo
    
-`wget https://buildroot.org/downloads/buildroot-2024.02.1.tar.xz`
+`wget https://buildroot.org/downloads/buildroot-2024.05.2.tar.xz`
 
 4. unpack it
 
-`tar xf buildroot-2024.02.1.tar.xz`
+`tar xf buildroot-2024.05.2.tar.xz`
 
 5. Copy the desired configuration into the buildroot directory.
 
@@ -27,7 +27,7 @@ These images have some advantages over a more traditional distro like Debian, in
 
 6. Enter the buildroot directory
 
-`cd buildroot-2024.02.1/`
+`cd buildroot-2024.05.2/`
 
 6. Make any configuration changes desired.
 
