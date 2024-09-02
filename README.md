@@ -23,7 +23,7 @@ These images have some advantages over a more traditional distro like Debian, in
 
 5. Copy the desired configuration into the buildroot directory.
 
-`cp configs/alpine_defconfig buildroot-2024.02.1/.config`
+`cp configs/alpine_defconfig buildroot-2024.05.2/.config`
 
 6. Enter the buildroot directory
 
