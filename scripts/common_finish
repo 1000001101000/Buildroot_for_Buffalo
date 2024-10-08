@@ -25,8 +25,7 @@ micro_evtd_install
 ##adjustments to make dcron work more or less how one would expect cron to behave
 cron_setup
 
-###can eventually make safe for non-micon, can we automate detection?
-###might split into just the lib and all the system...stuff
+##really just custom stuff at this point
 libmicon_install
 
 ###check if installed I imagine, ends up more or less noop for systemd, but that is also fine?
@@ -44,8 +43,7 @@ getty_setup
 ##network stuff, systemd-networkd in particular. hosts localhost?
 network_setup
 
-##hook for custom script with example?
-##mail stuff at min I think
+##move to hook for custom script with example?
 cp ~/buildroot_keep/.msmtprc "$TARGET_DIR/root/"
 cat ~/buildroot_keep/authorized_keys >> "$TARGET_DIR/root/.ssh/authorized_keys"
 cp ~/buildroot_keep/smb.conf "$TARGET_DIR/etc/samba/"
@@ -55,7 +53,6 @@ cp ../custom/first_boot_test.sh "$TARGET_DIR/usr/bin"
 zedrc="$TARGET_DIR/etc/zfs/zed.d/zed.rc"
 [ -f "$zedrc" ] && grep -qve "^ZED_EMAIL_ADDR" "$zedrc" && cat ~/buildroot_keep/zed-config >> "$zedrc"
 
-##varies oops
 cp -v ~/buildroot_keep/root "$TARGET_DIR$crondir/crontabs/"
 for x in exports mdadm.conf rsyncd.conf rsyncd.secrets aliases
 do
