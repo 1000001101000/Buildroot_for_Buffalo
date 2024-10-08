@@ -1,4 +1,5 @@
 
+exit 0
 ##heimdal/samba crossbuild issue waiting to be merged
 curl "https://patchwork.ozlabs.org/project/buildroot/patch/20240210103634.3502847-1-bernd@kuhls.net/raw/" 2>/dev/null | patch -N -p1
 
