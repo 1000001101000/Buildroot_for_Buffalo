@@ -9,7 +9,7 @@ debian_import libreadline5 buster armhf main "./lib/arm-linux-gnueabihf/"
 debian_import libtinfo6 buster armhf main "./lib/arm-linux-gnueabihf/"
 
 ##grab older mdadm binary compatible with this kernel's interfaces
-debian_import mdadm jessie armhf main "./etc/ ./lib/udev/ ./sbin/"
+debian_import mdadm jessie armhf main "./etc/ ./lib/udev/ ./sbin/ ./usr/share/mdadm/"
 ##may need to move ahead of common or stage some dirs or something
 
 
