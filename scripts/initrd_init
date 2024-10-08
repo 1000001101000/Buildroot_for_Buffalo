@@ -74,12 +74,17 @@ if [ "$variant" = "denverton" ]; then
   micon_port="/dev/ttyS0"
 fi
 
+##some variants don't necessarily have a micon
+##for now try accessing and see if it responds
+if [ "$micon_ver" = "2" ]; then
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 0003 2>/dev/null || micon_ver=""
+fi
+
 if [ "$micon_ver" = "2" ]; then
   ##enable serial console on Terastation II Pro, Terastation III, Terastation 3000... probably others
   sleep 2 ##trying to understand early failures of console cmd
   /usr/bin/micro-evtd -q -p "$micon_port" -s 0003
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 000f,000f
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 000f,000f
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 000f
   /usr/bin/micro-evtd -q -p "$micon_port" -s 000f
   /usr/bin/micro-evtd -q -p "$micon_port" -s 000f
   echo "console enabled" > /dev/console
