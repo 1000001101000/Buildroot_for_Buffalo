@@ -22,7 +22,4 @@ create_bootfs
 
 create_image
 
-##install bootloader to gtp/mbr
-syslinux_install
-
 exit 0

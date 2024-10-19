@@ -1,103 +1,10 @@
-From patchwork Thu Apr 16 20:31:03 2015
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-Patchwork-Submitter: Joe Perches <joe@perches.com>
-X-Patchwork-Id: 6227681
-Return-Path: <linux-kbuild-owner@kernel.org>
-X-Original-To: patchwork-linux-kbuild@patchwork.kernel.org
-Delivered-To: patchwork-parsemail@patchwork1.web.kernel.org
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.136])
-	by patchwork1.web.kernel.org (Postfix) with ESMTP id ADB029F1C4
-	for <patchwork-linux-kbuild@patchwork.kernel.org>;
-	Thu, 16 Apr 2015 20:31:32 +0000 (UTC)
-Received: from mail.kernel.org (localhost [127.0.0.1])
-	by mail.kernel.org (Postfix) with ESMTP id 1D1972012B
-	for <patchwork-linux-kbuild@patchwork.kernel.org>;
-	Thu, 16 Apr 2015 20:31:31 +0000 (UTC)
-Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7BDF220219
-	for <patchwork-linux-kbuild@patchwork.kernel.org>;
-	Thu, 16 Apr 2015 20:31:29 +0000 (UTC)
-Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-	id S1750753AbbDPUb0 (ORCPT
-	<rfc822;patchwork-linux-kbuild@patchwork.kernel.org>);
-	Thu, 16 Apr 2015 16:31:26 -0400
-Received: from smtprelay0236.hostedemail.com ([216.40.44.236]:47951 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753427AbbDPUbU (ORCPT
-	<rfc822;linux-kbuild@vger.kernel.org>);
-	Thu, 16 Apr 2015 16:31:20 -0400
-Received: from filter.hostedemail.com (unknown [216.40.38.60])
-	by smtprelay06.hostedemail.com (Postfix) with ESMTP id C29AD9ED75;
-	Thu, 16 Apr 2015 20:31:19 +0000 (UTC)
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-Spam-Summary: 50, 0, 0, , d41d8cd98f00b204, joe@perches.com,
-	:::::::::::::::,
-	RULES_HIT:1:41:69:355:379:541:800:960:967:973:988:989:1260:1263:1345:1359:1437:1605:1730:1747:1777:1792:2393:2525:2565:2638:2682:2685:2693:2859:2933:2937:2939:2942:2945:2947:2951:2954:3022:3138:3139:3140:3141:3142:3865:3866:3867:3868:3870:3871:3872:3874:3934:3936:3938:3941:3944:3947:3950:3953:3956:3959:4321:5007:6119:6238:6261:7875:7903:8599:8660:9025:9140:9388:9592:10004:10848:11026:11232:11473:11657:11658:11914:12043:12291:12295:12296:12438:12517:12519:12555:12660:12683:12698:12737:13025:13148:13149:13230:14094:14096:14110:14394:21080,
-	0, RBL:none, CacheIP:none, Bayesian:0.5, 0.5, 0.5,
-	Netcheck:none, DomainCache:0, MSF:not bulk, SPF:fn, MSBL:0,
-	DNSBL:none, Custom_rules:0:0:0
-X-HE-Tag: soup04_286fb483e4823
-X-Filterd-Recvd-Size: 13343
-Received: from joe-laptop.perches.com
-	(pool-71-119-66-80.lsanca.fios.verizon.net [71.119.66.80])
-	(Authenticated sender: joe@perches.com)
-	by omf10.hostedemail.com (Postfix) with ESMTPA;
-	Thu, 16 Apr 2015 20:31:17 +0000 (UTC)
-From: Joe Perches <joe@perches.com>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Andi Kleen <andi@firstfloor.org>, linux-kernel@vger.kernel.org
-Cc: Michal Marek <mmarek@suse.cz>, linux-kbuild@vger.kernel.org,
-	Andi Kleen <ak@linux.intel.com>,
-	Segher Boessenkool <segher@kernel.crashing.org>,
-	Sasha Levin <levinsasha928@gmail.com>
-Subject: [PATCH 2/2] compiler-gcc: Integrate the various compiler-gcc[345].h
-	files
-Date: Thu, 16 Apr 2015 13:31:03 -0700
-Message-Id: 
- <3559245896f42bd09698977773654782e62f5ca5.1429212277.git.joe@perches.com>
-X-Mailer: git-send-email 2.1.2
-In-Reply-To: <20150416162938.GU2366@two.firstfloor.org>
-References: <20150416162938.GU2366@two.firstfloor.org>
-In-Reply-To: <cover.1429212277.git.joe@perches.com>
-References: <cover.1429212277.git.joe@perches.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-Precedence: bulk
-List-ID: <linux-kbuild.vger.kernel.org>
-X-Mailing-List: linux-kbuild@vger.kernel.org
-X-Spam-Status: No, score=-6.9 required=5.0 tests=BAYES_00, RCVD_IN_DNSWL_HI,
-	T_RP_MATCHES_RCVD,
-	UNPARSEABLE_RELAY autolearn=ham version=3.3.1
-X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on mail.kernel.org
-X-Virus-Scanned: ClamAV using ClamSMTP
-
-As gcc major version numbers are going to advance rather rapidly
-in the future, there's no real value in separate files for each
-compiler version.
-
-Deduplicate some of the macros #defined in each file too.
-
-Neaten comments using normal kernel commenting style
-
-Signed-off-by: Joe Perches <joe@perches.com>
----
- include/linux/compiler-gcc.h  | 120 ++++++++++++++++++++++++++++++++++++++++--
- include/linux/compiler-gcc3.h |  23 --------
- include/linux/compiler-gcc4.h |  91 --------------------------------
- include/linux/compiler-gcc5.h |  67 -----------------------
- 4 files changed, 116 insertions(+), 185 deletions(-)
- delete mode 100644 include/linux/compiler-gcc3.h
- delete mode 100644 include/linux/compiler-gcc4.h
- delete mode 100644 include/linux/compiler-gcc5.h
-
 diff --git a/include/linux/compiler-gcc.h b/include/linux/compiler-gcc.h
-index 0b008ad..e28b089 100644
+index 24545cd9..0c5d7468 100644
 --- a/include/linux/compiler-gcc.h
 +++ b/include/linux/compiler-gcc.h
-@@ -108,10 +108,122 @@
- #define __maybe_unused		__attribute__((unused))
- #define __always_unused		__attribute__((unused))
+@@ -97,10 +97,122 @@
+ #define __maybe_unused			__attribute__((unused))
+ #define __always_unused			__attribute__((unused))
  
 -#define __gcc_header(x) #x
 -#define _gcc_header(x) __gcc_header(linux/compiler-gcc##x.h)
@@ -224,7 +131,7 @@ index 0b008ad..e28b089 100644
  #define __noclone	/* not needed */
 diff --git a/include/linux/compiler-gcc3.h b/include/linux/compiler-gcc3.h
 deleted file mode 100644
-index 7d89feb..0000000
+index 7d89febe..00000000
 --- a/include/linux/compiler-gcc3.h
 +++ /dev/null
 @@ -1,23 +0,0 @@

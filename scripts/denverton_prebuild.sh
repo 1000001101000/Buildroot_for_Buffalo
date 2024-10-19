@@ -11,6 +11,9 @@ curl "https://marc.info/?l=buildroot&m=170021430500441&q=raw" 2>/dev/null | patc
 #BR2_PACKAGE_SYSBENCH_ARCH_SUPPORTS=y
 #BR2_PACKAGE_SYSBENCH=y
 
+##procps-ng regression already fixed in main
+curl https://github.com/buildroot/buildroot/commit/3b870057c646a6b7abc822d3ce2ea0f41683420b.patch 2>/dev/null | patch -N -p1
+
 ##sometime between commit dc172396fb60fc207776573563fe458bdbd2cc63 and present the atspool directory became necessary for jobs to actually run.
 ##Mar 28 02:06:03 buildroot cron.err atd[1584]: Cannot chdir to /var/spool/cron/atspool: No such file or directory
 patch -N -p1 << EOF

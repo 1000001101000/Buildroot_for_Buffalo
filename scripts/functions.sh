@@ -40,19 +40,14 @@ debian_import()
   local suite=$4
   local files=$5
 
-  #echo "$pkg"
+  local mirrors="ftp.debian.org archive.debian.org"
+  local mirror=""
 
   if [ -z "$suite" ]; then
     suite="main"
   fi
 
-  if [ "$distro" == "jessie" ]; then
-    mirror="archive.debian.org"
-  else
-    mirror="ftp.debian.org"
-  fi
-
-  if [ "$BR2_DL_DIR" = "" ]; then
+  if [ -z "$BR2_DL_DIR" ]; then
     echo "failed to lookup download directory"
     exit 1
   fi
@@ -63,12 +58,33 @@ debian_import()
     mkdir -p "$dir" || exit 1
   fi
 
-  cd "$dir" || exit 1
-  wget -N "http://$mirror/debian/dists/$distro/$suite/binary-$arch/Packages.gz" 2>/dev/null
+  cd "$dir" >/dev/null || exit 1
+  for mirror in $mirrors
+  do
+    wget -N "http://$mirror/debian/dists/$distro/$suite/binary-$arch/Packages.gz" 2>/dev/null && break
+  done
 
-  deb_url="$(zcat Packages.gz | grep /"$pkg"_ | grep Filename | gawk '{print $2}')"
+  if [ ! -f "Packages.gz" ]; then
+    echo "failed downloading package index for $distro-$arch-$suite"
+    exit 1
+  fi
+
+  local re="^Package: $pkg"'$'
+  local record_start="$(zcat Packages.gz | grep -m 1 -ne "$re" | cut -d: -f 1)"
+
+  if [ -z "$record_start" ]; then
+    echo "package not found in $distro-$arch-$suite index"
+    exit 1
+  fi
+
+  local deb_url="$(zcat Packages.gz | tail -n +$record_start | grep -m1 -e '^Filename' | gawk '{print $2}')"
   wget -N "http://$mirror/debian/$deb_url" 2>/dev/null
-  filename="$(basename "$deb_url")"
+  local filename="$(basename "$deb_url")"
+
+  if [ ! -f "$filename" ]; then
+    echo "failed to retreive $filename"
+    exit 1
+  fi
 
   ar xf "$filename" data.tar.xz
   tar xf data.tar.xz --keep-directory-symlink -C "$TARGET_DIR" $files
@@ -241,7 +257,6 @@ LABEL memtest+
     MENU LABEL Memtest86+
     LINUX /memtest86
 " > "$bootdir/syslinux.cfg"
-ls "$bootdir"
 }
 
 syslinux_setup()
@@ -318,17 +333,14 @@ create_image()
 
 debian_lib_fixup()
 {
-  if [ ARCH_TYPE = "armel" ]; then
-    ln -s "$TARGET_DIR/usr/lib" "$TARGET_DIR/usr/lib/arm-linux-gnueabi" 2>/dev/null
-    ln -s "$TARGET_DIR/lib" "$TARGET_DIR/lib/arm-linux-gnueabi" 2>/dev/null
-  fi
-  if [ ARCH_TYPE = "armhf" ]; then
-    ln -s "$TARGET_DIR/usr/lib" "$TARGET_DIR/usr/lib/arm-linux-gnueabihf" 2>/dev/null
-    ln -s "$TARGET_DIR/lib" "$TARGET_DIR/lib/arm-linux-gnueabihf" 2>/dev/null
-  fi
-  if [ ARCH_TYPE = "arm64" ]; then
-    ln -s "$TARGET_DIR/usr/lib" "$TARGET_DIR/usr/lib/aarch64-linux-gnu" 2>/dev/null
-    ln -s "$TARGET_DIR/lib" "$TARGET_DIR/lib/aarch64-linux-gnu" 2>/dev/null
+  local tuple=""
+  [ "$ARCH_TYPE" = "armel" ] && tuple="arm-linux-gnueabi"
+  [ "$ARCH_TYPE" = "armhf" ] && tuple="arm-linux-gnueabihf"
+  [ "$ARCH_TYPE" = "arm64" ] && tuple="aarch64-linux-gnu"
+
+  if [ ! -z "$tuple" ]; then
+    ln -s "$TARGET_DIR/usr/lib" "$TARGET_DIR/usr/lib/$tuple" 2>/dev/null
+    ln -s "$TARGET_DIR/lib" "$TARGET_DIR/lib/$tuple" 2>/dev/null
   fi
 }
 
@@ -533,7 +545,7 @@ create_bootfs()
   ###copy in the syslinux binaries and config if needed
   grep -q "BR2_TARGET_SYSLINUX=y" "$BR2_CONFIG" && syslinux_setup
 
-  bootsize="$(du -shBM "$bootdir" | cut -dM -f1)"
+  bootsize="$(du --apparent-size -shBM "$bootdir" | cut -dM -f1)"
   bootsize=$((bootsize+100))
 
   dd if=/dev/zero of="$bootimg" bs=1M count="$bootsize" 2>/dev/null
@@ -548,3 +560,11 @@ create_bootfs()
     mkfs.ext3 -I 128 -U "$bootID" -d "$bootdir" "$bootimg"
   fi
 }
+
+cgroupv1_tweak()
+{
+  ##try to force cgroups v1 for docker compatability on kernels new enough to have cgroupv2 but old enough to have missing features
+  rc_conf="$TARGET_DIR/etc/rc.conf"
+  grep -q 'rc_cgroup_mode="legacy"' "$rc_conf" || echo 'rc_cgroup_mode="legacy"' >> "$rc_conf"
+}
+
