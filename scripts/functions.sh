@@ -99,13 +99,14 @@ custom_module()
         local kver="$(ls $BUILD_DIR | grep -e ^linux-[1-9] | sed 's/linux-//g')"
         local kernel_dir="$BUILD_DIR/linux-$kver"
         local cross="$HOST_DIR/bin/$(ls output/host/bin/ | grep -e '^.*buildroot.*gcc$' | sed 's/...$//g')"
+        eval $(grep ^CONFIG_LOCALVERSION= output/build/linux-6.11.11/.config)
 
         cd "$mod_dir" || exit 99
         make clean
-        make TARGET="$kver" KERNEL_BUILD="$BUILD_DIR/linux-$kver" CROSS_COMPILE="$cross" KERNEL_MODULES="$TARGET_DIR/lib/modules/$kver"
-        make modules_install TARGET="$kver" KERNEL_BUILD="$BUILD_DIR/linux-$kver" CROSS_COMPILE="$cross" KERNEL_MODULES="$TARGET_DIR/lib/modules/$kver"
+        make TARGET="$kver" KERNEL_BUILD="$BUILD_DIR/linux-$kver" CROSS_COMPILE="$cross" KERNEL_MODULES="$TARGET_DIR/lib/modules/$kver$CONFIG_LOCALVERSION"
+        make modules_install TARGET="$kver" KERNEL_BUILD="$BUILD_DIR/linux-$kver" CROSS_COMPILE="$cross" KERNEL_MODULES="$TARGET_DIR/lib/modules/$kver$CONFIG_LOCALVERSION"
         cd - > /dev/null
-        depmod -b "$TARGET_DIR" -o "$TARGET_DIR" "$kver"
+        depmod -b "$TARGET_DIR" -o "$TARGET_DIR" "$kver$CONFIG_LOCALVERSION"
 }
 
 r8152_config()

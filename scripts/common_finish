@@ -2,6 +2,9 @@
 
 . ../scripts/functions.sh
 
+##make sure this starts clean
+rm -r "$BINARIES_DIR/modules/" 2>/dev/null
+
 ### path tweak for importing debian libraries
 debian_lib_fixup
 
