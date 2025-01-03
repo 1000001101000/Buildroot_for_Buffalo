@@ -1,3 +1,4 @@
+#!/bin/sh
 
 . /etc/buffalo_type
 

@@ -21,7 +21,7 @@ if (ver == "2"):
 	test.send_write_cmd(0,0x03) ## boot_end
 	test.send_write_cmd(0,0x0C) ##shutdown_wait
 
-	if sys.argv[1] in ["halt","poweroff"]:
+	if action in ["halt","poweroff"]:
 		match=0
 		test.set_lcd_brightness(libmicon.LCD_BRIGHT_OFF)
 		test.set_lcd_buffer(0x90,"             ","             ")
@@ -49,7 +49,7 @@ if (ver == "3"):
 	for i in range(16):
 		test.set_led(i, "off")
 	test.send_miconv3("LCD_CLR")
-	if sys.argv[1] in ["halt","poweroff"]:
+	if action in ["halt","poweroff"]:
 		test.send_miconv3("POWER_OFF")
 	else:
 		test.send_miconv3("REBOOT")
