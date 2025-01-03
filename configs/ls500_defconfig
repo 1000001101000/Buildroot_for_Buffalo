@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Buildroot -gd3f2dd2-dirty Configuration
+# Buildroot -gf4d407a-dirty Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_HOST_GCC_AT_LEAST_4_9=y
@@ -569,6 +569,7 @@ BR2_LINUX_KERNEL_CUSTOM_DTS_PATH="../kernel/ls500/dts/rtd-119x-nas.dts ../kernel
 # BR2_LINUX_KERNEL_NEEDS_HOST_OPENSSL is not set
 # BR2_LINUX_KERNEL_NEEDS_HOST_LIBELF is not set
 # BR2_LINUX_KERNEL_NEEDS_HOST_PAHOLE is not set
+# BR2_LINUX_KERNEL_NEEDS_HOST_PYTHON3 is not set
 
 #
 # Linux Kernel Extensions
@@ -713,8 +714,6 @@ BR2_PACKAGE_BPFTOOL_ARCH_SUPPORTS=y
 # bpftool needs a toolchain w/ wchar, dynamic library, threads, headers >= 4.12
 #
 # BR2_PACKAGE_CACHE_CALIBRATOR is not set
-BR2_PACKAGE_CK_ARCH_SUPPORTS=y
-BR2_PACKAGE_CK=y
 
 #
 # clinfo needs an OpenCL provider
@@ -806,8 +805,6 @@ BR2_PACKAGE_PV=y
 BR2_PACKAGE_STRACE=y
 # BR2_PACKAGE_STRESS is not set
 # BR2_PACKAGE_STRESS_NG is not set
-BR2_PACKAGE_SYSBENCH_ARCH_SUPPORTS=y
-BR2_PACKAGE_SYSBENCH=y
 # BR2_PACKAGE_SYSDIG is not set
 
 #
@@ -2249,6 +2246,7 @@ BR2_PACKAGE_PYTHON_PYPARSING=y
 #
 # python-pyqt5 needs Qt5
 #
+# BR2_PACKAGE_PYTHON_PYQT5_SIP is not set
 # BR2_PACKAGE_PYTHON_PYRATEMP is not set
 # BR2_PACKAGE_PYTHON_PYROUTE2 is not set
 # BR2_PACKAGE_PYTHON_PYRSISTENT is not set
