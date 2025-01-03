@@ -17,12 +17,21 @@ CONFIG_USB_SERIAL_PL2303=y
 CONFIG_USB_UAS=y
 
 ##most of these setups use cheap usb or onboard flash
-##zwap is sufficient for most workloads to avoid using a flash partition. 
+##zwap is sufficient for most workloads to avoid using a swap partition. 
 CONFIG_ZSWAP=y
 
 ##gpio/pinctrl
 CONFIG_PINCTRL=y
 CONFIG_GPIO_SYSFS=y
+
+##make sure i2c available for poking around
+CONFIG_OF_I2C=y
+CONFIG_I2C=y
+CONFIG_I2C_CHARDEV=y
+
+##eeprom drivers for dimm info etc
+CONFIG_EEPROM_AT24=y
+CONFIG_EEPROM_EE1004=y
 
 ##I have yet to see a device that needs optimize for size. 
 ##(with the caveat that you may need to move your initrd to an approp address)
