@@ -1,8 +1,8 @@
 diff --git a/package/zfs/zfs.mk b/package/zfs/zfs.mk
-index 59cdd31..d0ab118 100644
+index b86214e7..d7695149 100644
 --- a/package/zfs/zfs.mk
 +++ b/package/zfs/zfs.mk
-@@ -17,12 +17,10 @@ ZFS_AUTORECONF = YES
+@@ -14,12 +14,10 @@ ZFS_CPE_ID_PRODUCT = openzfs
  
  ZFS_DEPENDENCIES = libaio openssl udev util-linux zlib libcurl linux
  

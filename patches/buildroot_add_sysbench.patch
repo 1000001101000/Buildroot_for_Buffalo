@@ -1,0 +1,140 @@
+From: Sergey Romanov <svromanov@sberdevices.ru>
+
+This benchmark was designed for identifying basic
+system parameters, as they are important for system
+using MySQL (w Innodb) under intensive load.
+Handling of IO in case of many parallel requests,
+checked as well as memory allocation/transfer
+speed and scheduler performance.
+CPU is benchmarked by using 64bit integer manipulation
+using Euklid algorithms for prime number computation.
+Benchmarks are designed to show benefit of multiple
+CPUs as well as of multiple hard drives,
+battery backed up write cache.
+
+https://github.com/akopytov/sysbench.git
+
+Signed-off-by: Sergey Romanov <svromanov@salutedevices.com>
+---
+ DEVELOPERS                     |  1 +
+ package/Config.in              |  1 +
+ package/sysbench/Config.in     | 29 +++++++++++++++++++++++++++++
+ package/sysbench/sysbench.hash |  3 +++
+ package/sysbench/sysbench.mk   | 31 +++++++++++++++++++++++++++++++
+ 5 files changed, 65 insertions(+)
+ create mode 100644 package/sysbench/Config.in
+ create mode 100644 package/sysbench/sysbench.hash
+ create mode 100644 package/sysbench/sysbench.mk
+
+diff --git a/DEVELOPERS b/DEVELOPERS
+index f967b46842..73d4dfe094 100644
+--- a/DEVELOPERS
++++ b/DEVELOPERS
+@@ -2719,6 +2719,7 @@ F:	configs/snps_arc700_nsim_defconfig
+ 
+ N:	Sergey Romanov <svromanov@salutedevices.com>
+ F:	package/ck/
++F:	package/sysbench/
+ 
+ N:	Sergio Prado <sergio.prado@e-labworks.com>
+ F:	board/toradex/apalis-imx6/
+diff --git a/package/Config.in b/package/Config.in
+index ed08cb69c6..281544900b 100644
+--- a/package/Config.in
++++ b/package/Config.in
+@@ -152,6 +152,7 @@ menu "Debugging, profiling and benchmark"
+ 	source "package/strace/Config.in"
+ 	source "package/stress/Config.in"
+ 	source "package/stress-ng/Config.in"
++	source "package/sysbench/Config.in"
+ 	source "package/sysdig/Config.in"
+ 	source "package/sysprof/Config.in"
+ 	source "package/tcf-agent/Config.in"
+diff --git a/package/sysbench/Config.in b/package/sysbench/Config.in
+new file mode 100644
+index 0000000000..7e4987497e
+--- /dev/null
++++ b/package/sysbench/Config.in
+@@ -0,0 +1,29 @@
++config BR2_PACKAGE_SYSBENCH_ARCH_SUPPORTS
++	bool
++	default y if !BR2_powerpc
++
++config BR2_PACKAGE_SYSBENCH
++	bool "sysbench"
++	depends on BR2_PACKAGE_SYSBENCH_ARCH_SUPPORTS
++	depends on BR2_PACKAGE_CK_ARCH_SUPPORTS
++	depends on !BR2_STATIC_LIBS # luajit
++	depends on !BR2_PACKAGE_LUA # luajit
++	depends on BR2_PACKAGE_LUAJIT_ARCH_SUPPORTS # luajit
++	depends on BR2_TOOLCHAIN_HAS_THREADS
++
++	select BR2_PACKAGE_LUAJIT
++	select BR2_PACKAGE_CK
++	select BR2_PACKAGE_PKGCONF
++	select BR2_PACKAGE_LIBTOOL
++	help
++	  This benchmark was designed for identifying basic system
++	  parameters, as they are important for system using MySQL (w
++	  Innodb) under intensive load. Handling of IO in case of many
++	  parallel requests, checked as well as memory allocation
++	  /transfer speed and scheduler performance. CPU is benchmarked
++	  by using 64bit integer manipulation using Euklid algorithms
++	  for prime number computation. Benchmarks are designed to show
++	  benefit of multiple CPUs as well as of multiple hard drives,
++	  battery backed up write cache.
++
++	  https://github.com/akopytov/sysbench.git
+diff --git a/package/sysbench/sysbench.hash b/package/sysbench/sysbench.hash
+new file mode 100644
+index 0000000000..a31fdb1178
+--- /dev/null
++++ b/package/sysbench/sysbench.hash
+@@ -0,0 +1,3 @@
++# Locally calculated
++sha256  e8ee79b1f399b2d167e6a90de52ccc90e52408f7ade1b9b7135727efe181347f  sysbench-1.0.20.tar.gz
++sha256  8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643  COPYING
+diff --git a/package/sysbench/sysbench.mk b/package/sysbench/sysbench.mk
+new file mode 100644
+index 0000000000..33e19706e8
+--- /dev/null
++++ b/package/sysbench/sysbench.mk
+@@ -0,0 +1,31 @@
++################################################################################
++#
++# SYSBENCH
++#
++################################################################################
++
++SYSBENCH_VERSION = 1.0.20
++SYSBENCH_SITE = $(call github,akopytov,sysbench,$(SYSBENCH_VERSION))
++SYSBENCH_LICENSE = GPL-2.0+
++SYSBENCH_LICENSE_FILES = COPYING
++
++SYSBENCH_AUTORECONF = YES
++
++SYSBENCH_DEPENDENCIES += host-pkgconf ck luajit
++
++SYSBENCH_CONF_OPTS += \
++	--without-lib-prefix \
++	--with-system-luajit \
++	--with-system-ck
++
++ifeq ($(BR2_PACKAGE_MYSQL), y)
++SYSBENCH_DEPENDENCIES += mysql
++SYSBENCH_CONF_OPTS += \
++	--with-mysql \
++	--with-mysql-includes=$(STAGING_DIR)/usr/include/mysql \
++	--with-mysql-libs=$(STAGING_DIR)/usr/lib
++else
++SYSBENCH_CONF_OPTS += --without-mysql
++endif
++
++$(eval $(autotools-package))
+-- 
+2.25.1
+
+_______________________________________________
+buildroot mailing list
+buildroot@buildroot.org
+https://lists.buildroot.org/mailman/listinfo/buildroot

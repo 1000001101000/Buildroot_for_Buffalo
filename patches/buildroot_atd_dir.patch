@@ -1,0 +1,16 @@
+diff --git a/package/at/S99at b/package/at/S99at
+index f132a46c..aa848df4 100644
+--- a/package/at/S99at
++++ b/package/at/S99at
+@@ -15,6 +15,11 @@ start() {
+ 		printf "atd: created missing .SEQ file (atjobs will be lost on reboot)\n"
+ 	fi
+ 
++	# likewise, ensure /var/spool/cron/atspool/ is present
++	if [ ! -d /var/spool/cron/atspool/ ]; then
++		mkdir -p /var/spool/cron/atspool/
++	fi
++
+ 	printf "Starting atd: "
+ 	start-stop-daemon --start --quiet --make-pidfile --pidfile /var/run/atd.pid --background --exec /usr/sbin/atd -- -f
+ 	echo "OK"

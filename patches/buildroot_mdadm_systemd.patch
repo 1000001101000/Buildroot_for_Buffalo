@@ -1,0 +1,20 @@
+diff --git a/package/mdadm/mdadm.mk b/package/mdadm/mdadm.mk
+index 421f06d6..f97c6f00 100644
+--- a/package/mdadm/mdadm.mk
++++ b/package/mdadm/mdadm.mk
+@@ -36,6 +36,15 @@ else
+ MDADM_CXFLAGS += -DNO_LIBUDEV
+ endif
+ 
++#ifeq ($(BR2_INIT_SYSTEMD),y)
++#MDADM_DEPENDENCIES += systemd
++#MDADM_INSTALL_TARGET_OPTS += install-systemd
++#endif
++
++define MDADM_INSTALL_INIT_SYSTEMD
++	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) DESTDIR=$(TARGET_DIR) install-systemd
++endef
++
+ define MDADM_BUILD_CMDS
+ 	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) $(MDADM_BUILD_OPTS) mdadm mdmon
+ endef

@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Buildroot -ge2b1272-dirty Configuration
+# Buildroot -g1b55a56-dirty Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_HOST_GCC_AT_LEAST_4_9=y
@@ -527,7 +527,7 @@ BR2_TARGET_TZ_ZONELIST="default"
 BR2_TARGET_LOCALTIME="Etc/UTC"
 BR2_ROOTFS_USERS_TABLES=""
 BR2_ROOTFS_OVERLAY=""
-BR2_ROOTFS_PRE_BUILD_SCRIPT="../scripts/alpine_prebuild.sh"
+BR2_ROOTFS_PRE_BUILD_SCRIPT="../scripts/common_prebuild.sh"
 BR2_ROOTFS_POST_BUILD_SCRIPT="../scripts/alpine_finish.sh"
 BR2_ROOTFS_POST_FAKEROOT_SCRIPT=""
 BR2_ROOTFS_POST_IMAGE_SCRIPT="../scripts/alpine_postbuild.sh"
@@ -1095,7 +1095,7 @@ BR2_PACKAGE_ASCII_INVADERS=y
 # BR2_PACKAGE_GNUPLOT is not set
 
 #
-# igt-gpu-tools needs udev /dev management and toolchain w/ threads, wchar, dynamic library, locale, headers >= 4.11
+# igt-gpu-tools needs udev /dev management and toolchain w/ NPTL, wchar, dynamic library, locale, headers >= 4.11
 #
 
 #
@@ -2836,7 +2836,7 @@ BR2_PACKAGE_LIBVPL_ARCH_SUPPORTS=y
 BR2_PACKAGE_WEBKITGTK_ARCH_SUPPORTS=y
 
 #
-# webkitgtk needs libgtk3 and a toolchain w/ C++, wchar, threads, dynamic library, gcc >= 10, host gcc >= 4.9
+# webkitgtk needs libgtk3 and a toolchain w/ C++, wchar, NPTL, dynamic library, gcc >= 10, host gcc >= 4.9
 #
 # BR2_PACKAGE_WEBP is not set
 
@@ -3637,7 +3637,7 @@ BR2_PACKAGE_IFUPDOWN_SCRIPTS=y
 # BR2_PACKAGE_IPCALC is not set
 BR2_PACKAGE_IPERF=y
 # BR2_PACKAGE_IPERF3 is not set
-# BR2_PACKAGE_IPROUTE2 is not set
+BR2_PACKAGE_IPROUTE2=y
 # BR2_PACKAGE_IPSET is not set
 BR2_PACKAGE_IPTABLES=y
 BR2_PACKAGE_IPTABLES_BPF_NFSYNPROXY=y
@@ -4083,7 +4083,8 @@ BR2_PACKAGE_OPENRC=y
 #
 # BR2_PACKAGE_PETITBOOT is not set
 # BR2_PACKAGE_POLKIT is not set
-# BR2_PACKAGE_PROCPS_NG is not set
+BR2_PACKAGE_PROCPS_NG=y
+BR2_PACKAGE_PROCPS_NG_ORIGINAL_TOP=y
 # BR2_PACKAGE_PROCRANK_LINUX is not set
 # BR2_PACKAGE_PROCS is not set
 BR2_PACKAGE_PSMISC=y

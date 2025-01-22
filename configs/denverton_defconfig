@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Buildroot -ge2b1272-dirty Configuration
+# Buildroot -g1b55a56-dirty Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_HOST_GCC_AT_LEAST_4_9=y
@@ -380,7 +380,7 @@ BR2_OPTIMIZE_S=y
 BR2_SHARED_LIBS=y
 # BR2_SHARED_STATIC_LIBS is not set
 BR2_PACKAGE_OVERRIDE_FILE="$(CONFIG_DIR)/local.mk"
-BR2_GLOBAL_PATCH_DIR=""
+BR2_GLOBAL_PATCH_DIR="$(TOPDIR)/../patches"
 
 #
 # Advanced
@@ -473,7 +473,7 @@ BR2_TARGET_TZ_ZONELIST="default"
 BR2_TARGET_LOCALTIME="Etc/UTC"
 BR2_ROOTFS_USERS_TABLES=""
 BR2_ROOTFS_OVERLAY=""
-BR2_ROOTFS_PRE_BUILD_SCRIPT="../scripts/denverton_prebuild.sh"
+BR2_ROOTFS_PRE_BUILD_SCRIPT="../scripts/common_prebuild.sh"
 BR2_ROOTFS_POST_BUILD_SCRIPT="../scripts/denverton_finish.sh"
 BR2_ROOTFS_POST_FAKEROOT_SCRIPT=""
 BR2_ROOTFS_POST_IMAGE_SCRIPT="../scripts/denverton_postbuild.sh"
@@ -513,7 +513,7 @@ BR2_LINUX_KERNEL_GZIP=y
 # BR2_LINUX_KERNEL_ZSTD is not set
 # BR2_LINUX_KERNEL_DTS_SUPPORT is not set
 BR2_LINUX_KERNEL_INSTALL_TARGET=y
-# BR2_LINUX_KERNEL_NEEDS_HOST_OPENSSL is not set
+BR2_LINUX_KERNEL_NEEDS_HOST_OPENSSL=y
 # BR2_LINUX_KERNEL_NEEDS_HOST_LIBELF is not set
 # BR2_LINUX_KERNEL_NEEDS_HOST_PAHOLE is not set
 # BR2_LINUX_KERNEL_NEEDS_HOST_PYTHON3 is not set
@@ -2485,7 +2485,7 @@ BR2_PACKAGE_LIBVPL_ARCH_SUPPORTS=y
 BR2_PACKAGE_WEBKITGTK_ARCH_SUPPORTS=y
 
 #
-# webkitgtk needs libgtk3 and a toolchain w/ C++, wchar, threads, dynamic library, gcc >= 10, host gcc >= 4.9
+# webkitgtk needs libgtk3 and a toolchain w/ C++, wchar, NPTL, dynamic library, gcc >= 10, host gcc >= 4.9
 #
 # BR2_PACKAGE_WEBP is not set
 
@@ -3942,6 +3942,7 @@ BR2_TARGET_SYSLINUX_LEGACY_BIOS=y
 # BR2_TARGET_SYSLINUX_ISOLINUX is not set
 # BR2_TARGET_SYSLINUX_PXELINUX is not set
 BR2_TARGET_SYSLINUX_MBR=y
+BR2_TARGET_SYSLINUX_GPT=y
 BR2_TARGET_SYSLINUX_EFI=y
 BR2_TARGET_SYSLINUX_C32="vesamenu.c32 libcom32.c32 libutil.c32 ldlinux.c32 menu.c32"
 # BR2_TARGET_UBOOT is not set

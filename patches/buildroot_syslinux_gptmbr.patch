@@ -1,10 +1,31 @@
---- buildroot/boot/syslinux/syslinux.mk	2024-03-26 04:28:48.000000000 -0500
-+++ buildroot-2024.02.1/boot/syslinux/syslinux.mk	2024-04-19 10:38:14.393726219 -0500
-@@ -95,6 +95,7 @@
+diff --git a/boot/syslinux/Config.in b/boot/syslinux/Config.in
+index c95dac18..95f01a4f 100644
+--- a/boot/syslinux/Config.in
++++ b/boot/syslinux/Config.in
+@@ -41,6 +41,14 @@ config BR2_TARGET_SYSLINUX_MBR
+ 	  local MBR-partition (e.g. prepared with 'extlinux'
+ 	  or 'syslinux').
+ 
++config BR2_TARGET_SYSLINUX_GPT
++	bool "install gpt"
++	select BR2_TARGET_SYSLINUX_LEGACY_BIOS
++	help
++	  Install the legacy-BIOS 'gpt' image, to boot off a
++	  local GPT-partition (e.g. prepared with 'extlinux'
++	  or 'syslinux').
++
+ config BR2_TARGET_SYSLINUX_EFI
+ 	bool "install efi"
+ 	depends on BR2_PACKAGE_GNU_EFI_ARCH_SUPPORTS
+diff --git a/boot/syslinux/syslinux.mk b/boot/syslinux/syslinux.mk
+index cc52c49a..c88e9644 100644
+--- a/boot/syslinux/syslinux.mk
++++ b/boot/syslinux/syslinux.mk
+@@ -95,6 +95,7 @@ SYSLINUX_POST_INSTALL_TARGET_HOOKS += SYSLINUX_POST_INSTALL_CLEANUP
  SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_ISOLINUX) += bios/core/isolinux.bin
  SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_PXELINUX) += bios/core/pxelinux.bin
  SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_MBR) += bios/mbr/mbr.bin
-+SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_MBR) += bios/mbr/gptmbr.bin
++SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_GPT) += bios/mbr/gptmbr.bin
  SYSLINUX_IMAGES-$(BR2_TARGET_SYSLINUX_EFI) += $(SYSLINUX_EFI_BITS)/efi/syslinux.efi
  
  SYSLINUX_C32 = $(call qstrip,$(BR2_TARGET_SYSLINUX_C32))

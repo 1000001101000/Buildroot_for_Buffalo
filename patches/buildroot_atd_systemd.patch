@@ -1,0 +1,15 @@
+diff --git a/package/at/at.mk b/package/at/at.mk
+index ed38def3..6be1630a 100644
+--- a/package/at/at.mk
++++ b/package/at/at.mk
+@@ -18,6 +18,10 @@ AT_CONF_OPTS = \
+ 	--with-daemon_groupname=root \
+ 	SENDMAIL=/usr/sbin/sendmail
+ 
++ifeq ($(BR2_INIT_SYSTEMD),y)
++	AT_CONF_OPTS += --with-systemdsystemunitdir=/usr/lib/systemd/system
++endif
++
+ define AT_INSTALL_INIT_SYSV
+ 	$(INSTALL) -m 0755 -D package/at/S99at $(TARGET_DIR)/etc/init.d/S99at
+ endef
