@@ -270,7 +270,7 @@ syslinux_gpt_install()
 {
   ##write syslinux boot record to partition table.
   dd bs=440 count=1 if="$BINARIES_DIR/syslinux/gptmbr.bin" of="$diskimg" conv=notrunc 2>/dev/null
-  if [ $? -ne 0 ]; then "write mbr image failed"; exit 99; fi
+  if [ $? -ne 0 ]; then echo "write mbr image failed"; exit 99; fi
   sync
 }
 
