@@ -48,10 +48,6 @@ network_setup
 
 ##move to hook for custom script with example?
 cp ~/buildroot_keep/.msmtprc "$TARGET_DIR/root/"
-cat ~/buildroot_keep/authorized_keys >> "$TARGET_DIR/root/.ssh/authorized_keys"
-cp ~/buildroot_keep/smb.conf "$TARGET_DIR/etc/samba/"
-cp ~/buildroot_keep/saveconfig.json "$TARGET_DIR/etc/target/"
-cp ../custom/first_boot_test.sh "$TARGET_DIR/usr/bin"
 
 zedrc="$TARGET_DIR/etc/zfs/zed.d/zed.rc"
 [ -f "$zedrc" ] && grep -qve "^ZED_EMAIL_ADDR" "$zedrc" && cat ~/buildroot_keep/zed-config >> "$zedrc"
