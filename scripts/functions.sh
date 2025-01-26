@@ -468,9 +468,9 @@ micro_evtd_install()
 
 bootshim_install()
 {
-  if [ ARCH_TYPE="armel" ] || [ ARCH_TYPE="armhf" ]; then
+  if [ "$ARCH_TYPE" = "armel" ] || [ "$ARCH_TYPE" = "armhf" ]; then
     cd "$BR2_DL_DIR" || exit 1
-    wget -N "https://github.com/1000001101000/Debian_on_Buffalo/raw/master/Tools/bootshim/$ARCH_TYPE_shim" 2>/dev/null
+    wget -N "https://github.com/1000001101000/Debian_on_Buffalo/raw/refs/heads/master/Tools/bootshim/$ARCH_TYPE""_shim" >/dev/null
     cd - || exit 1
     cp "$BR2_DL_DIR/$ARCH_TYPE""_shim" "$BINARIES_DIR/"
   fi
