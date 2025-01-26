@@ -9,7 +9,9 @@ rootfs_type="ext4"
 pad_dtbs
 bootshim_install
 
-cat "$BINARIES_DIR/$ARCH_TYPE""_shim" "$BINARIES_DIR/zImage.armada-370-linkstation-ls220d" > "$BINARIES_DIR/katkern"
+#BR2_LINUX_KERNEL_INTREE_DTS_NAME
+
+cat "$BINARIES_DIR/$ARCH_TYPE""_shim" "$BINARIES_DIR/zImage.armada-370-linkstation-ls210d" > "$BINARIES_DIR/katkern"
 
 mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n buildroot-kernel -d "$BINARIES_DIR/katkern" "$BINARIES_DIR/uImage.buffalo"
 
