@@ -1,0 +1,51 @@
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -463,6 +463,12 @@
+ 			initial_pmd_value |= PMD_SECT_S;
+ 		}
+ 	}
++#if defined(CONFIG_MACH_ARMADA_370)
++	else if (cachepolicy != CPOLICY_WRITEALLOC) {
++		pr_warn("Forcing write-allocate cache policy for Armada 370\n");
++		cachepolicy = CPOLICY_WRITEALLOC;
++	}
++#endif
+ 
+ 	/*
+ 	 * Strip out features not present on earlier architectures.
+--- a/arch/arm/mach-mvebu/coherency.c
++++ b/arch/arm/mach-mvebu/coherency.c
+@@ -226,8 +226,6 @@
+ 	 * where we don't know yet on which SoC we are running.
+ 
+ 	 */
+-	if (!is_smp())
+-		return COHERENCY_FABRIC_TYPE_NONE;
+ 
+ 	np = of_find_matching_node_and_match(NULL, of_coherency_table, &match);
+ 	if (!np)
+--- a/arch/arm/mm/proc-v7-2level.S
++++ b/arch/arm/mm/proc-v7-2level.S
+@@ -16,9 +16,9 @@
+ #define TTB_IRGN_WT	((1 << 0) | (0 << 6))
+ #define TTB_IRGN_WB	((1 << 0) | (1 << 6))
+ 
+-/* PTWs cacheable, inner WB not shareable, outer WB not shareable */
+-#define TTB_FLAGS_UP	TTB_IRGN_WB|TTB_RGN_OC_WB
+-#define PMD_FLAGS_UP	PMD_SECT_WB
++/* PTWs cacheable, inner WBWA not shareable, outer WBWA not shareable */
++#define TTB_FLAGS_UP	TTB_IRGN_WBWA|TTB_RGN_OC_WBWA
++#define PMD_FLAGS_UP	PMD_SECT_WBWA
+ 
+ /* PTWs cacheable, inner WBWA shareable, outer WBWA not shareable */
+ #define TTB_FLAGS_SMP	TTB_IRGN_WBWA|TTB_S|TTB_NOS|TTB_RGN_OC_WBWA
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -444,6 +444,7 @@
+ 	/* Auxiliary Debug Modes Control 1 Register */
+ 	mrc	p15, 1,	r0, c15, c1, 1
+ 	orr     r0, r0, #PJ4B_CLEAN_LINE
++	orr     r0, r0, #(1 << 7)		@ v7 IO coherency support (Single core). Taken from vendor's GPL.
+ 	orr     r0, r0, #PJ4B_INTER_PARITY
+ 	bic	r0, r0, #PJ4B_STATIC_BP
+ 	mcr	p15, 1,	r0, c15, c1, 1

@@ -45,6 +45,8 @@ lcd_color()
 /bin/mount -t sysfs none /sys
 /bin/mount -t devtmpfs none /dev
 
+machinetype="$(sed -n '/Hardware/ {s/^Hardware\s*:\s//;p}' /proc/cpuinfo)"
+
 ##load any modules that made it to the initrd
 if [ -d "/lib/modules/$(uname -r)/" ]; then
   find /lib/modules/$(uname -r)/ -name *.ko | xargs -n1 insmod
@@ -58,6 +60,7 @@ bootID="$(cat /bootUUID)"
 variant="$(cat /variant)"
 
 micon_ver=""
+micon_port=""
 
 if [ "$variant" = "atom" ] || [ "$variant" = "orion5x" ] || [ "$variant" = "mv78100" ]; then
   micon_ver=2
@@ -72,6 +75,11 @@ fi
 if [ "$variant" = "denverton" ]; then
   micon_ver=3
   micon_port="/dev/ttyS0"
+fi
+
+if [ "$machine" = "Buffalo Terastation TS1400D" ] || [ "$machine" = "Buffalo Terastation TS1400R" ]; then
+  micon_ver=2
+  micon_port="/dev/ttyS1"
 fi
 
 ##some variants don't necessarily have a micon
@@ -162,6 +170,17 @@ echo "custom initrd, looking for rootfs"
 ROOTDEV="$(blkid -U "$rootfsID")"
 BOOTDEV="$(blkid -U "$bootID")"
 
+if [ "$variant" = "armada370" ]; then
+  grep -q nandboot /proc/cmdline
+  if [ $? -eq 0 ]; then
+    echo "Attempting NAND boot based on cmdline params"
+    ubiattach -m 2
+    ubiattach -m 3
+    BOOTDEV="/dev/ubi0_1"
+    ROOTDEV="/dev/ubi1_1"
+  fi
+fi
+
 ##if they were not found do a more intrusive search
 if [ "$ROOTDEV" = "" ] || [ "$BOOTDEV" = "" ]; then
 
@@ -198,10 +217,12 @@ if [ "$ROOTDEV" = "" ] || [ $FORCESHELL -eq 1 ]; then
   echo "mount your rootfs on /mnt/root then type 'exit' to continue boot"
   /bin/getty -n -l /bin/sh -t 300 -L console 0 vt100
 else
-  echo "ROOTFS: $rootfsID -> $ROOTDEV"
-  echo "BOOTFS: $bootID -> $BOOTDEV"
-  mount -o ro "$ROOTDEV" /mnt/root 2>/dev/null
-  mount "$BOOTDEV" /mnt/root/boot 2>/dev/null
+  RTYPE="$(blkid -s TYPE -o value "$ROOTDEV")"
+  BTYPE="$(blkid -s TYPE -o value "$BOOTDEV")"
+  echo "ROOTFS: $RTYPE $ROOTDEV"
+  echo "BOOTFS: $BTYPE $BOOTDEV"
+  mount -t "$RTYPE" -o ro "$ROOTDEV" /mnt/root 2>/dev/null
+  mount -t "$BTYPE" "$BOOTDEV" /mnt/root/boot 2>/dev/null
 fi
 
 lcd_put " Custom InitRD  " "Attempting Boot "

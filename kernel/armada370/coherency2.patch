@@ -1,0 +1,22 @@
+--- a/arch/arm/mm/cache-l2x0.c
++++ b/arch/arm/mm/cache-l2x0.c
+@@ -1497,7 +1497,7 @@
+ 	l2_wt_override = of_property_read_bool(np, "wt-override");
+ 
+ 	if (l2_wt_override) {
+-		val |= AURORA_ACR_FORCE_WRITE_THRO_POLICY;
++		val |= AURORA_ACR_FORCE_WRITE_POLICY_DIS;
+ 		mask |= AURORA_ACR_FORCE_WRITE_POLICY_MASK;
+ 	}
+ 
+--- a/arch/arm/include/asm/hardware/cache-aurora-l2.h
++++ b/arch/arm/include/asm/hardware/cache-aurora-l2.h
+@@ -29,7 +29,7 @@
+ #define AURORA_ACR_REPLACEMENT_TYPE_LFSR     \
+ 	(1 << AURORA_ACR_REPLACEMENT_OFFSET)
+ #define AURORA_ACR_REPLACEMENT_TYPE_SEMIPLRU \
+-	(3 << AURORA_ACR_REPLACEMENT_OFFSET)
++	(2 << AURORA_ACR_REPLACEMENT_OFFSET)
+ 
+ #define AURORA_ACR_PARITY_EN	(1 << 21)
+ #define AURORA_ACR_ECC_EN	(1 << 20)

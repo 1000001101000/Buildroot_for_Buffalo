@@ -6,4 +6,4 @@
 . /etc/buffalo_type
 [ "$micon_ver" != "" ] && /usr/bin/micon_startup.py "$micon_port" "$micon_ver"
 
-
+exit 0

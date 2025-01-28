@@ -1,9 +1,9 @@
 diff --git a/arch/arm/boot/dts/armada-370-linkstation-ls210d.dts b/arch/arm/boot/dts/armada-370-linkstation-ls210d.dts
 new file mode 100755
-index 0000000..b07c455
+index 0000000..b115d79
 --- /dev/null
 +++ b/arch/arm/boot/dts/armada-370-linkstation-ls210d.dts
-@@ -0,0 +1,253 @@
+@@ -0,0 +1,254 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
 +* Device Tree file for Buffalo Linkstation LS210D
@@ -257,12 +257,13 @@ index 0000000..b07c455
 +		marvell,function = "gpo";
 +	};
 +};
++&coherencyfab {broken-idle;};
 diff --git a/arch/arm/boot/dts/armada-370-linkstation-ls220d.dts b/arch/arm/boot/dts/armada-370-linkstation-ls220d.dts
 new file mode 100755
-index 0000000..99ced5a
+index 0000000..577954f
 --- /dev/null
 +++ b/arch/arm/boot/dts/armada-370-linkstation-ls220d.dts
-@@ -0,0 +1,390 @@
+@@ -0,0 +1,391 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
 +* Device Tree file for Buffalo Linkstation LS220D
@@ -653,12 +654,13 @@ index 0000000..99ced5a
 +		marvell,function = "gpio";
 +	};
 +};
++&coherencyfab {broken-idle;};
 diff --git a/arch/arm/boot/dts/armada-370-linkstation-ls410d.dts b/arch/arm/boot/dts/armada-370-linkstation-ls410d.dts
 new file mode 100755
-index 0000000..a2f1787
+index 0000000..76efbe5
 --- /dev/null
 +++ b/arch/arm/boot/dts/armada-370-linkstation-ls410d.dts
-@@ -0,0 +1,316 @@
+@@ -0,0 +1,317 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
 +* Device Tree file for Buffalo Linkstation LS410D
@@ -975,12 +977,13 @@ index 0000000..a2f1787
 +		marvell,function = "gpo";
 +	};
 +};
++&coherencyfab {broken-idle;};
 diff --git a/arch/arm/boot/dts/armada-370-linkstation-ls420d.dts b/arch/arm/boot/dts/armada-370-linkstation-ls420d.dts
 new file mode 100755
-index 0000000..15acfa4
+index 0000000..048ae8d
 --- /dev/null
 +++ b/arch/arm/boot/dts/armada-370-linkstation-ls420d.dts
-@@ -0,0 +1,387 @@
+@@ -0,0 +1,388 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
 +* Device Tree file for Buffalo Linkstation LS420D
@@ -1368,12 +1371,13 @@ index 0000000..15acfa4
 +		marvell,function = "gpio";
 +	};
 +};
++&coherencyfab {broken-idle;};
 diff --git a/arch/arm/boot/dts/armada-370-linkstation-ls421d.dts b/arch/arm/boot/dts/armada-370-linkstation-ls421d.dts
 new file mode 100755
-index 0000000..316eedd
+index 0000000..c7a96d6
 --- /dev/null
 +++ b/arch/arm/boot/dts/armada-370-linkstation-ls421d.dts
-@@ -0,0 +1,435 @@
+@@ -0,0 +1,436 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
 +* Device Tree file for Buffalo Linkstation LS421D
@@ -1809,12 +1813,13 @@ index 0000000..316eedd
 +		marvell,function = "gpio";
 +	};
 +};
++&coherencyfab {broken-idle;};
 diff --git a/arch/arm/boot/dts/armada-370-linkstation-ls441d.dts b/arch/arm/boot/dts/armada-370-linkstation-ls441d.dts
 new file mode 100755
-index 0000000..f90f14d
+index 0000000..371accd
 --- /dev/null
 +++ b/arch/arm/boot/dts/armada-370-linkstation-ls441d.dts
-@@ -0,0 +1,517 @@
+@@ -0,0 +1,518 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
 +* Device Tree file for Buffalo Linkstation LS441D
@@ -2332,12 +2337,13 @@ index 0000000..f90f14d
 +		marvell,function = "gpio";
 +	};
 +};
++&coherencyfab {broken-idle;};
 diff --git a/arch/arm/boot/dts/armada-370-terastation-ts1200d.dts b/arch/arm/boot/dts/armada-370-terastation-ts1200d.dts
 new file mode 100755
-index 0000000..c288126
+index 0000000..0e38d27
 --- /dev/null
 +++ b/arch/arm/boot/dts/armada-370-terastation-ts1200d.dts
-@@ -0,0 +1,423 @@
+@@ -0,0 +1,424 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
 +* Device Tree file for Buffalo Terastation TS1200D
@@ -2761,12 +2767,13 @@ index 0000000..c288126
 +		marvell,function = "gpio";
 +	};
 +};
++&coherencyfab {broken-idle;};
 diff --git a/arch/arm/boot/dts/armada-370-terastation-ts1400d.dts b/arch/arm/boot/dts/armada-370-terastation-ts1400d.dts
 new file mode 100755
-index 0000000..64e071a
+index 0000000..92b8754
 --- /dev/null
 +++ b/arch/arm/boot/dts/armada-370-terastation-ts1400d.dts
-@@ -0,0 +1,383 @@
+@@ -0,0 +1,384 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
 +* Device Tree file for Buffalo Terastation TS1400D
@@ -3150,12 +3157,13 @@ index 0000000..64e071a
 +		marvell,function = "uart1";
 +	};
 +};
++&coherencyfab {broken-idle;};
 diff --git a/arch/arm/boot/dts/armada-370-terastation-ts1400r.dts b/arch/arm/boot/dts/armada-370-terastation-ts1400r.dts
 new file mode 100755
-index 0000000..c156460
+index 0000000..9af14cc
 --- /dev/null
 +++ b/arch/arm/boot/dts/armada-370-terastation-ts1400r.dts
-@@ -0,0 +1,339 @@
+@@ -0,0 +1,340 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
 +* Device Tree file for Buffalo Terastation TS1400R
@@ -3495,6 +3503,7 @@ index 0000000..c156460
 +		marvell,function = "uart1";
 +	};
 +};
++&coherencyfab {broken-idle;};
 diff --git a/arch/arm/boot/dts/armada-370-xp.dtsi b/arch/arm/boot/dts/armada-370-xp.dtsi
 new file mode 120000
 index 0000000..9d6deae

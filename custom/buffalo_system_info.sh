@@ -4,7 +4,7 @@ arch="$(uname -m)"
 shutdown_type=""
 micon_ver=""
 micon_port=""
-fan_type="" ## control vs sensor? ... think it's just temp sensor
+fan_type="" ## hwmon (some automatic some not), gpio (shows as hwmon), micon
 
 if [ "$arch" == "x86_64" ]; then
   grep -q "C3338" /proc/cpuinfo ##does ws5820 etc have different?
@@ -25,7 +25,8 @@ if [ "$arch" == "x86_64" ]; then
   fi
 fi ##end X86
 
-machine=`sed -n '/Hardware/ {s/^Hardware\s*:\s//;p}' /proc/cpuinfo`
+machinetype=`sed -n '/Hardware/ {s/^Hardware\s*:\s//;p}' /proc/cpuinfo`
+machine="$machinetype"
 case $machine in
         *"Device Tree)")
         machine=$(cat /proc/device-tree/model)
@@ -57,6 +58,24 @@ if [ $? -eq 0 ]; then ##alpine devs
     micon_ver=3
     micon_port="/dev/ttyUSB0"
     fan_type="miconv3"
+  fi
+  if [ "$machinetype" = "Marvell Armada 370/XP (Device Tree)" ]; then
+    case $machine in
+    "Buffalo Terastation TS1400D"|"Buffalo Terastation TS1400D")
+      micon_ver=2
+      micon_port="/dev/ttyS1"
+      shutdown_type="micon"
+      fan_type="miconv2"
+      ;;
+    "Buffalo Linkstation LS210D")
+      fan_type=""
+      ;;
+    "Buffalo Linkstation LS420D"|"Buffalo Linkstation LS421D"|"Buffalo Linkstation LS441D")
+      shutdown_type="phy"
+      ;;
+    *)
+      fan_type="gpio"
+      ;;
   fi
 fi ##end armhf
 
