@@ -76,6 +76,7 @@ if [ $? -eq 0 ]; then ##alpine devs
     *)
       fan_type="gpio"
       ;;
+    esac
   fi
 fi ##end armhf
 
