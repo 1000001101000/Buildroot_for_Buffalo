@@ -4,5 +4,3 @@ Driver=mvneta
 [Link]
 NamePolicy=kernel database onboard slot path
 #MTUBytes=9000
-#RxBufferSize=64
-#TxBufferSize=256
