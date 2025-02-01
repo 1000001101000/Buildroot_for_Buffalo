@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Buildroot -gde31f25-dirty Configuration
+# Buildroot -g9bd75ad-dirty Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_HOST_GCC_AT_LEAST_4_9=y
@@ -555,7 +555,7 @@ BR2_LINUX_KERNEL_XZ=y
 BR2_LINUX_KERNEL_DTS_SUPPORT=y
 # BR2_LINUX_KERNEL_DTB_IS_SELF_BUILT is not set
 BR2_LINUX_KERNEL_APPENDED_DTB=y
-BR2_LINUX_KERNEL_INTREE_DTS_NAME="armada-370-linkstation-ls220d"
+BR2_LINUX_KERNEL_INTREE_DTS_NAME="armada-370-terastation-ts1400d"
 BR2_LINUX_KERNEL_CUSTOM_DTS_PATH=""
 # BR2_LINUX_KERNEL_DTB_KEEP_DIRNAME is not set
 # BR2_LINUX_KERNEL_DTB_OVERLAY_SUPPORT is not set

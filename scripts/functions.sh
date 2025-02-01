@@ -558,7 +558,7 @@ create_bootfs()
   fi
   ##larger Inode should be unimportant until at least 2038?
   if [ "$bootfs_type" = "ext3" ]; then
-    mkfs.ext3 -I 128 -U "$bootID" -d "$bootdir" "$bootimg"
+    mkfs.ext3 -U "$bootID" -d "$bootdir" "$bootimg"
   fi
 }
 

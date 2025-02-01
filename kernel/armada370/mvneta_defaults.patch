@@ -1,0 +1,15 @@
+diff --git a/drivers/net/ethernet/marvell/mvneta.c b/drivers/net/ethernet/marvell/mvneta.c
+index 4189483..98eccdd 100644
+--- a/drivers/net/ethernet/marvell/mvneta.c
++++ b/drivers/net/ethernet/marvell/mvneta.c
+@@ -299,8 +299,8 @@
+ 
+ /* Coalescing */
+ #define MVNETA_TXDONE_COAL_PKTS		0	/* interrupt per packet */
+-#define MVNETA_RX_COAL_PKTS		32
+-#define MVNETA_RX_COAL_USEC		100
++#define MVNETA_RX_COAL_PKTS		128
++#define MVNETA_RX_COAL_USEC		384
+ 
+ /* The two bytes Marvell header. Either contains a special value used
+  * by Marvell switches when a specific hardware mode is enabled (not

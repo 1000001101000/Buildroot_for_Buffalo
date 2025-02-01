@@ -19,6 +19,7 @@ CONFIG_USB_UAS=y
 ##most of these setups use cheap usb or onboard flash
 ##zwap is sufficient for most workloads to avoid using a swap partition. 
 CONFIG_ZSWAP=y
+CONFIG_COMPACTION=y
 
 ##gpio/pinctrl
 CONFIG_PINCTRL=y
