@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Buildroot -g9bd75ad-dirty Configuration
+# Buildroot -g70f2477-dirty Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_HOST_GCC_AT_LEAST_4_9=y
@@ -49,21 +49,16 @@ BR2_ARCH="arm"
 BR2_NORMALIZED_ARCH="arm"
 BR2_ENDIAN="LITTLE"
 BR2_GCC_TARGET_ABI="aapcs-linux"
-BR2_GCC_TARGET_CPU="cortex-a9"
+BR2_GCC_TARGET_CPU="marvell-pj4"
 BR2_GCC_TARGET_FPU="vfpv3-d16"
 BR2_GCC_TARGET_FLOAT_ABI="hard"
-BR2_GCC_TARGET_MODE="thumb"
+BR2_GCC_TARGET_MODE="arm"
 BR2_BINFMT_SUPPORTS_SHARED=y
 BR2_READELF_ARCH_NAME="ARM"
-BR2_ARM_CPU_MAYBE_HAS_NEON=y
-BR2_ARM_CPU_MAYBE_HAS_FPU=y
 BR2_ARM_CPU_HAS_FPU=y
-BR2_ARM_CPU_MAYBE_HAS_VFPV2=y
 BR2_ARM_CPU_HAS_VFPV2=y
-BR2_ARM_CPU_MAYBE_HAS_VFPV3=y
 BR2_ARM_CPU_HAS_VFPV3=y
 BR2_ARM_CPU_HAS_ARM=y
-BR2_ARM_CPU_HAS_THUMB2=y
 BR2_ARM_CPU_ARMV7A=y
 
 #
@@ -95,13 +90,13 @@ BR2_ARM_CPU_ARMV7A=y
 # BR2_cortex_a5 is not set
 # BR2_cortex_a7 is not set
 # BR2_cortex_a8 is not set
-BR2_cortex_a9=y
+# BR2_cortex_a9 is not set
 # BR2_cortex_a12 is not set
 # BR2_cortex_a15 is not set
 # BR2_cortex_a15_a7 is not set
 # BR2_cortex_a17 is not set
 # BR2_cortex_a17_a7 is not set
-# BR2_pj4 is not set
+BR2_pj4=y
 
 #
 # armv7m cores
@@ -140,15 +135,12 @@ BR2_cortex_a9=y
 #
 # armv8.4a cores
 #
-# BR2_ARM_ENABLE_NEON is not set
-BR2_ARM_ENABLE_VFP=y
 # BR2_ARM_EABI is not set
 BR2_ARM_EABIHF=y
 # BR2_ARM_FPU_VFPV2 is not set
 # BR2_ARM_FPU_VFPV3 is not set
 BR2_ARM_FPU_VFPV3D16=y
-# BR2_ARM_INSTRUCTIONS_ARM is not set
-BR2_ARM_INSTRUCTIONS_THUMB2=y
+BR2_ARM_INSTRUCTIONS_ARM=y
 BR2_BINFMT_ELF=y
 
 #
@@ -1341,8 +1333,6 @@ BR2_PACKAGE_LINUX_FIRMWARE_RTL_815X=y
 # BR2_PACKAGE_CBOOTIMAGE is not set
 # BR2_PACKAGE_CC_TOOL is not set
 # BR2_PACKAGE_CDRKIT is not set
-BR2_PACKAGE_CPUBURN_ARM_ARCH_SUPPORTS=y
-# BR2_PACKAGE_CPUBURN_ARM is not set
 # BR2_PACKAGE_CRUCIBLE is not set
 # BR2_PACKAGE_CRYPTSETUP is not set
 # BR2_PACKAGE_CWIID is not set
@@ -3282,7 +3272,7 @@ BR2_PACKAGE_LLVM_TARGET_ARCH="ARM"
 # BR2_PACKAGE_MPIR is not set
 # BR2_PACKAGE_MSGPACK is not set
 # BR2_PACKAGE_NEON_2_SSE is not set
-BR2_PACKAGE_OPENBLAS_DEFAULT_TARGET="CORTEXA9"
+BR2_PACKAGE_OPENBLAS_DEFAULT_TARGET="ARMV7"
 BR2_PACKAGE_OPENBLAS_ARCH_SUPPORTS=y
 # BR2_PACKAGE_OPENBLAS is not set
 # BR2_PACKAGE_ORC is not set
