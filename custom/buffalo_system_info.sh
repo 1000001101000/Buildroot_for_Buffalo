@@ -60,8 +60,9 @@ if [ $? -eq 0 ]; then ##alpine devs
     fan_type="miconv3"
   fi
   if [ "$machinetype" = "Marvell Armada 370/XP (Device Tree)" ]; then
+    fan_type="gpio"
     case $machine in
-    "Buffalo Terastation TS1400D"|"Buffalo Terastation TS1400D")
+    "Buffalo Terastation TS1400D"|"Buffalo Terastation TS1400R")
       micon_ver=2
       micon_port="/dev/ttyS1"
       shutdown_type="micon"
@@ -70,11 +71,8 @@ if [ $? -eq 0 ]; then ##alpine devs
     "Buffalo Linkstation LS210D")
       fan_type=""
       ;;
-    "Buffalo Linkstation LS420D"|"Buffalo Linkstation LS421D"|"Buffalo Linkstation LS441D")
+    "Buffalo Linkstation LS420D"|"Buffalo Linkstation LS421D"|"Buffalo Linkstation LS441D"|"Buffalo Terastation TS1200D")
       shutdown_type="phy"
-      ;;
-    *)
-      fan_type="gpio"
       ;;
     esac
   fi
