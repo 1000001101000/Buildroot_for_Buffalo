@@ -17,19 +17,25 @@ def getHDDtemp():
 	##can we check if drive is sleeping and skip? or otherwise prevent waking up drives to check temps?
 	##maybe setup a process to spread out checks?
 	##also avoid iscsi/etc?
-	output = subprocess.check_output('''hddtemp /dev/sd? 2> /dev/null | cut -d: -f 3 | sort -h | tail -1 | cut -d\  -f 2''', shell=True)
+	output = subprocess.check_output('''hddtemp -n /dev/sd? 2> /dev/null | sort | tail -n 1''', shell=True)
 	if output:
-		return (int(output.splitlines()[0].decode('utf-8')))
+		return int(output)
 	else:
 		return False
 
 def setMiconPWM(value):
+	lowmedhigh=int((value+30)//33)
 	##wrap the variations and just take
 	##if mconv2 send whatever value corresponds to %
 	##if hwmon gpio or otherwise should be 0-255, quick divide, easy enough
 	if (fan_type == "miconv3"):
 		micondev = libmicon.micon_api_v3(micon_port)
 		micondev.send_miconv3("FAN_SET 1 "+ str(value))
+		micondev.port.close()
+	if (fan_type == "miconv2"):
+		print("set",lowmedhigh)
+		micondev = libmicon.micon_api(micon_port)
+		micondev.send_write_cmd(1,libmicon.fan_set_speed,bytearray([lowmedhigh]))
 		micondev.port.close()
 
 config = configparser.ConfigParser()
@@ -82,6 +88,5 @@ while True:
 		setMiconPWM(pwm)
 
 	time.sleep(interval)
-###catch interrupt? generally how should openrc/etc stop it?
 quit()
 

@@ -1,0 +1,6 @@
+[Match]
+Driver=mvneta
+
+[Link]
+NamePolicy=kernel database onboard slot path
+#MTUBytes=9000

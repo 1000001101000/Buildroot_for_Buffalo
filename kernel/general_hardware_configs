@@ -19,6 +19,7 @@ CONFIG_USB_UAS=y
 ##most of these setups use cheap usb or onboard flash
 ##zwap is sufficient for most workloads to avoid using a swap partition. 
 CONFIG_ZSWAP=y
+CONFIG_COMPACTION=y
 
 ##gpio/pinctrl
 CONFIG_PINCTRL=y
@@ -40,3 +41,13 @@ CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
 
 ##can't say I've tested it much but some utils really don't like not having it
 CONFIG_IPV6=y
+
+##make sure loopback device support included
+CONFIG_BLK_DEV_LOOP=y
+
+##filesystems 
+CONFIG_SQUASHFS=y
+CONFIG_SQUASHFS_EMBEDDED=y
+CONFIG_SQUASHFS_XZ=y
+CONFIG_SQUASHFS_ZLIB=y
+CONFIG_SQUASHFS_4K_DEVBLK_SIZE=y

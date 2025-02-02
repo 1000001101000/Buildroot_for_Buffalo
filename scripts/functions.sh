@@ -143,7 +143,7 @@ local variant="$1"
 local rootfsID="$2"
 local bootID="$3"
 
-local importbins="bin/busybox sbin/blkid sbin/mdadm usr/bin/micro-evtd bin/lsblk usr/bin/timeout"
+local importbins="bin/busybox sbin/blkid sbin/mdadm usr/bin/micro-evtd bin/lsblk usr/bin/timeout usr/sbin/ubiattach"
 local workdir="$BINARIES_DIR/initrdtmp"
 
 ##cleanup previous run if needed
@@ -154,7 +154,7 @@ rm -r "$workdir" 2>/dev/null
 mkdir "$workdir"
 
 ##create some directories that will be needed.
-mkdir -p "$workdir"/{boot,proc,sys,dev,mnt/root,bin,lib,sbin,usr/bin,lib/modules}
+mkdir -p "$workdir"/{boot,proc,sys,dev,mnt/root,bin,lib,sbin,usr/bin,usr/sbin,lib/modules}
 
 #copy in init and make sure executable
 cp ../scripts/initrd_init "$workdir/init"
@@ -559,7 +559,7 @@ create_bootfs()
   fi
   ##larger Inode should be unimportant until at least 2038?
   if [ "$bootfs_type" = "ext3" ]; then
-    mkfs.ext3 -I 128 -U "$bootID" -d "$bootdir" "$bootimg"
+    mkfs.ext3 -U "$bootID" -d "$bootdir" "$bootimg"
   fi
 }
 
