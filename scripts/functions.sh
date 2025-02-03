@@ -32,6 +32,9 @@ fi
 rootfsID="$(blkid -o value -s UUID "$rootimg")"
 rootpartID="$(blkid -o value -s UUID "$rootimg")"
 
+kver="$(ls $BUILD_DIR | grep -e ^linux-[1-9] | sed 's/linux-//g')"
+kernel_dir="$BUILD_DIR/linux-$kver"
+
 debian_import()
 {
   local pkg=$1
@@ -96,8 +99,6 @@ debian_import()
 custom_module()
 {
         local mod_dir="$custom_dir/$1"
-        local kver="$(ls $BUILD_DIR | grep -e ^linux-[1-9] | sed 's/linux-//g')"
-        local kernel_dir="$BUILD_DIR/linux-$kver"
         local fullver="$kver$CONFIG_LOCALVERSION"
         local cross="$HOST_DIR/bin/$(ls output/host/bin/ | grep -e '^.*buildroot.*gcc$' | sed 's/...$//g')"
         eval "$(grep ^CONFIG_LOCALVERSION= "$kernel_dir/.config")"
@@ -570,3 +571,12 @@ cgroupv1_tweak()
   grep -q 'rc_cgroup_mode="legacy"' "$rc_conf" || echo 'rc_cgroup_mode="legacy"' >> "$rc_conf"
 }
 
+gen_appended_uImage()
+{
+  local output="uImage.buffalo"
+  eval "$(grep -e "^BR2_LINUX_KERNEL_INTREE_DTS_NAME" "$BR2_CONFIG")"
+  find "$kernel_dir" -name "$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
+  [ "$BR2_LINUX_KERNEL_INTREE_DTS_NAME" = "kirkwood-terastation-tsxel" ] && output="uImage-88f6281.buffalo"
+  cat "$BINARIES_DIR/$ARCH_TYPE""_shim" "$BINARIES_DIR/zImage" "$BINARIES_DIR/$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb" > "$BINARIES_DIR/katkern"
+  mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n buildroot-kernel -d "$BINARIES_DIR/katkern" "$BINARIES_DIR/$output"
+}

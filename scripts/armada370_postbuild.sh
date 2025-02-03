@@ -6,15 +6,9 @@ rootfs_type="ext4"
 ##import common functions
 . ../scripts/functions.sh
 
-pad_dtbs
 bootshim_install
 
-eval "$(grep -e "^BR2_LINUX_KERNEL_INTREE_DTS_NAME" "$BR2_CONFIG")"
-echo "$BR2_LINUX_KERNEL_INTREE_DTS_NAME"
-
-cat "$BINARIES_DIR/$ARCH_TYPE""_shim" "$BINARIES_DIR/zImage.$BR2_LINUX_KERNEL_INTREE_DTS_NAME" > "$BINARIES_DIR/katkern"
-
-mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n buildroot-kernel -d "$BINARIES_DIR/katkern" "$BINARIES_DIR/uImage.buffalo"
+gen_appended_uImage
 
 bootfs_prep
 
