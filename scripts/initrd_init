@@ -175,9 +175,9 @@ if [ "$variant" = "armada370" ]; then
   if [ $? -eq 0 ]; then
     echo "Attempting NAND boot based on cmdline params"
     ubiattach -m 2
+    BOOTDEV=`ls /dev/ubi0_? | head -n1`
     ubiattach -m 3
-    BOOTDEV="/dev/ubi0_1"
-    ROOTDEV="/dev/ubi1_1"
+    ROOTDEV=`ls /dev/ubi1_? | head -n1`
   fi
 fi
 
