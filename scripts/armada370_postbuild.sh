@@ -6,8 +6,6 @@ rootfs_type="ext4"
 ##import common functions
 . ../scripts/functions.sh
 
-bootshim_install
-
 bootfs_prep
 
 gen_appended_uImage

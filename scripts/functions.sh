@@ -468,17 +468,6 @@ micro_evtd_install()
   chmod +x "$TARGET_DIR/usr/bin/micro-evtd"
 }
 
-bootshim_install()
-{
-  if [ "$ARCH_TYPE" = "armel" ] || [ "$ARCH_TYPE" = "armhf" ]; then
-    cd "$BR2_DL_DIR" || exit 1
-    wget -N "https://github.com/1000001101000/Debian_on_Buffalo/raw/refs/heads/master/Tools/bootshim/$ARCH_TYPE""_shim" >/dev/null
-    cd - || exit 1
-    cp "$BR2_DL_DIR/$ARCH_TYPE""_shim" "$BINARIES_DIR/"
-  fi
-  ##probably leave appending to the board specific bit
-}
-
 libmicon_install()
 {
   cd "$BR2_DL_DIR" || exit 1
@@ -574,11 +563,13 @@ cgroupv1_tweak()
 gen_appended_uImage()
 {
   local output="uImage.buffalo"
+  local shim="$ARCH_TYPE""_shim"
   eval "$(grep -e "^BR2_LINUX_KERNEL_INTREE_DTS_NAME" "$BR2_CONFIG")"
+  cp "$custom_dir/$shim" "$BINARIES_DIR/"
   find "$kernel_dir" -name "$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
   find "$kernel_dir" -name "zImage" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
   [ "$BR2_LINUX_KERNEL_INTREE_DTS_NAME" = "kirkwood-terastation-tsxel" ] && output="uImage-88f6281.buffalo"
-  cat "$BINARIES_DIR/$ARCH_TYPE""_shim" "$BINARIES_DIR/zImage" "$BINARIES_DIR/$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb" > "$BINARIES_DIR/katkern"
+  cat "$BINARIES_DIR/$shim" "$BINARIES_DIR/zImage" "$BINARIES_DIR/$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb" > "$BINARIES_DIR/katkern"
   mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n buildroot-kernel -d "$BINARIES_DIR/katkern" "$BINARIES_DIR/$output"
   bootfs_copy "$BINARIES_DIR/$output"
 }
