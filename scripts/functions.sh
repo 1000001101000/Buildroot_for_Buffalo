@@ -576,7 +576,9 @@ gen_appended_uImage()
   local output="uImage.buffalo"
   eval "$(grep -e "^BR2_LINUX_KERNEL_INTREE_DTS_NAME" "$BR2_CONFIG")"
   find "$kernel_dir" -name "$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
+  find "$kernel_dir" -name "zImage" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
   [ "$BR2_LINUX_KERNEL_INTREE_DTS_NAME" = "kirkwood-terastation-tsxel" ] && output="uImage-88f6281.buffalo"
   cat "$BINARIES_DIR/$ARCH_TYPE""_shim" "$BINARIES_DIR/zImage" "$BINARIES_DIR/$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb" > "$BINARIES_DIR/katkern"
   mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n buildroot-kernel -d "$BINARIES_DIR/katkern" "$BINARIES_DIR/$output"
+  bootfs_copy "$BINARIES_DIR/$output"
 }
