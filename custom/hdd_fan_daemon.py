@@ -17,7 +17,7 @@ def getHDDtemp():
 	##can we check if drive is sleeping and skip? or otherwise prevent waking up drives to check temps?
 	##maybe setup a process to spread out checks?
 	##also avoid iscsi/etc?
-	output = subprocess.check_output('''hddtemp -n /dev/sd? 2> /dev/null | sort | tail -n 1''', shell=True)
+	output = subprocess.check_output('''hddtemp -q -n 2>/dev/null | sort -h | tail -n 1''', shell=True)
 	if output:
 		return int(output)
 	else:
