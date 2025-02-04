@@ -62,7 +62,7 @@ if [ $? -eq 0 ]; then ##alpine devs
   if [ "$machinetype" = "Marvell Armada 370/XP (Device Tree)" ]; then
     fan_type="gpio"
     case $machine in
-    "Buffalo Terastation TS1400D"|"Buffalo Terastation TS1400R")
+    "Buffalo Terastation TS1400D"|"Buffalo Terastation TS1400R"|"Buffalo Terastation TS3200D"|"Buffalo Terastation TS3400D"|"Buffalo Terastation TS3400R")
       micon_ver=2
       micon_port="/dev/ttyS1"
       shutdown_type="micon"

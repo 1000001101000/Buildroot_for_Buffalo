@@ -62,7 +62,7 @@ variant="$(cat /variant)"
 micon_ver=""
 micon_port=""
 
-if [ "$variant" = "atom" ] || [ "$variant" = "orion5x" ] || [ "$variant" = "mv78100" ]; then
+if [ "$variant" = "atom" ] || [ "$variant" = "orion5x" ] || [ "$variant" = "mv78100" ] || [ "$variant" = "armada370" ] || [ "$variant" = "armadaxp" ]; then
   micon_ver=2
   micon_port="/dev/ttyS1"
 fi
@@ -77,11 +77,6 @@ if [ "$variant" = "denverton" ]; then
   micon_port="/dev/ttyS0"
 fi
 
-if [ "$machine" = "Buffalo Terastation TS1400D" ] || [ "$machine" = "Buffalo Terastation TS1400R" ]; then
-  micon_ver=2
-  micon_port="/dev/ttyS1"
-fi
-
 ##some variants don't necessarily have a micon
 ##for now try accessing and see if it responds
 if [ "$micon_ver" = "2" ]; then
@@ -92,8 +87,10 @@ if [ "$micon_ver" = "2" ]; then
   ##enable serial console on Terastation II Pro, Terastation III, Terastation 3000... probably others
   sleep 2 ##trying to understand early failures of console cmd
   /usr/bin/micro-evtd -q -p "$micon_port" -s 0003
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 000f
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 000f
+  sleep 0.5
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 0003,000f,000f,000f
+  sleep 0.5
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 0003,000f,000f,000f
   /usr/bin/micro-evtd -q -p "$micon_port" -s 000f
   echo "console enabled" > /dev/console
   ##clear LEDs and set power LED
@@ -170,19 +167,23 @@ echo "custom initrd, looking for rootfs"
 ROOTDEV="$(blkid -U "$rootfsID")"
 BOOTDEV="$(blkid -U "$bootID")"
 
-if [ "$variant" = "armada370" ]; then
+if [ "$variant" = "armada370" ] || [ "$variant" = "armadaxp" ]; then
   grep -q nandboot /proc/cmdline
   if [ $? -eq 0 ]; then
     echo "Attempting NAND boot based on cmdline params"
-    ubiattach -m 2
-    BOOTDEV=`ls /dev/ubi0_? | head -n1`
-    ubiattach -m 3
+    if [ -e "/dev/mtd3" ]; then
+      ubiattach -m 3 -d 1
+      ubiattach -m 2 -d 0
+      BOOTDEV=`ls /dev/ubi0_? | head -n1`
+    else
+      ubiattach -m 2 -d 1
+    fi
     ROOTDEV=`ls /dev/ubi1_? | head -n1`
   fi
 fi
 
-##if they were not found do a more intrusive search
-if [ "$ROOTDEV" = "" ] || [ "$BOOTDEV" = "" ]; then
+##if root was not found do a more intrusive search
+if [ "$ROOTDEV" = "" ]; then
 
   ##we might still be waiting for some devices to show up, wait a few sec just in case.
   sleep 5
