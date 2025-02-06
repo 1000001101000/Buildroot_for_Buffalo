@@ -13,8 +13,15 @@ These images have some advantages over a more traditional distro like Debian, in
 
 ## To build a firmware image
 1. Clone the repository
+
+`git clone https://github.com/1000001101000/Buildroot_for_Buffalo`
+
+2. Switch to the repo directory
+
+`cd Buildroot_for_Buffalo`
+
 2. Download the supported buildroot version to the root of the repo
-   
+
 `wget https://buildroot.org/downloads/buildroot-2024.11.1.tar.xz`
 
 4. unpack it
