@@ -62,7 +62,7 @@ variant="$(cat /variant)"
 micon_ver=""
 micon_port=""
 
-if [ "$variant" = "atom" ] || [ "$variant" = "orion5x" ] || [ "$variant" = "mv78100" ] || [ "$variant" = "armada370" ] || [ "$variant" = "armadaxp" ]; then
+if [ "$variant" = "atom" ] || [ "$variant" = "marvellv5" ] || [ "$variant" = "armada370" ] || [ "$variant" = "armadaxp" ]; then
   micon_ver=2
   micon_port="/dev/ttyS1"
 fi
@@ -85,14 +85,9 @@ fi
 
 if [ "$micon_ver" = "2" ]; then
   ##enable serial console on Terastation II Pro, Terastation III, Terastation 3000... probably others
-  sleep 2 ##trying to understand early failures of console cmd
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 0003
-  sleep 0.5
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 0003,000f,000f,000f
-  sleep 0.5
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 0003,000f,000f,000f
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 000f
-  echo "console enabled" > /dev/console
+  ##it actually toggles it, on some devices there doesn't seem to be a way to determine the initial state.
+  /usr/bin/micro-evtd -q -p "$micon_port" -s 0003,000f,000f
+  echo "console enabled attempted" > /dev/console
   ##clear LEDs and set power LED
   /usr/bin/micro-evtd -q -p "$micon_port" -s 0250090f96,02520000ac,02510d00a0
   ##grab starting button value, if it changes maybe they want a shell?
@@ -177,6 +172,7 @@ if [ "$variant" = "armada370" ] || [ "$variant" = "armadaxp" ]; then
       BOOTDEV=`ls /dev/ubi0_? | head -n1`
     else
       ubiattach -m 2 -d 1
+      BOOTDEV=""
     fi
     ROOTDEV=`ls /dev/ubi1_? | head -n1`
   fi
