@@ -86,6 +86,7 @@ fi
 if [ "$micon_ver" = "2" ]; then
   ##enable serial console on Terastation II Pro, Terastation III, Terastation 3000... probably others
   ##it actually toggles it, on some devices there doesn't seem to be a way to determine the initial state.
+  ##suppose we could toggle on and off waiting for keystroke
   /usr/bin/micro-evtd -q -p "$micon_port" -s 0003,000f,000f
   echo "console enabled attempted" > /dev/console
   ##clear LEDs and set power LED

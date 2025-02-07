@@ -35,6 +35,10 @@ if (ver == "2"):
 	##disable boot watchdog
 	test.send_write_cmd(0,0x03)
 
+	##enable serial console on supported devs
+	test.send_write_cmd(0,0x0F)
+	test.send_write_cmd(0,0x0F)
+
 	##turn off red drive leds
 	test.cmd_set_led(libmicon.LED_OFF,[0x00,0x0F])
 
