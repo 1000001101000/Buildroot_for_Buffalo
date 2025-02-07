@@ -1,0 +1,12 @@
+diff --git a/etc/systemd/system/zfs-import-cache.service.in b/etc/systemd/system/zfs-import-cache.service.in
+index fd82298..6792f5a 100644
+--- a/etc/systemd/system/zfs-import-cache.service.in
++++ b/etc/systemd/system/zfs-import-cache.service.in
+@@ -7,6 +7,7 @@ After=systemd-udev-settle.service
+ After=cryptsetup.target
+ After=multipathd.service
+ After=systemd-remount-fs.service
++After=iscsi.service
+ Before=zfs-import.target
+ ConditionFileNotEmpty=@sysconfdir@/zfs/zpool.cache
+ ConditionPathIsDirectory=/sys/module/zfs
