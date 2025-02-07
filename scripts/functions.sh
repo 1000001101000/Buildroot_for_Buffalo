@@ -565,6 +565,7 @@ gen_appended_uImage()
   local output="uImage.buffalo"
   local shim="$ARCH_TYPE""_shim"
   eval "$(grep -e "^BR2_LINUX_KERNEL_INTREE_DTS_NAME" "$BR2_CONFIG")"
+  BR2_LINUX_KERNEL_INTREE_DTS_NAME=`basename $BR2_LINUX_KERNEL_INTREE_DTS_NAME`
   cp "$custom_dir/$shim" "$BINARIES_DIR/"
   find "$kernel_dir" -name "$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
   find "$kernel_dir" -name "zImage" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
