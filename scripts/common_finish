@@ -60,4 +60,6 @@ done
 
 mkdir "$TARGET_DIR/mnt/array" 2>/dev/null
 
+bootfs_prep
+
 exit 0
