@@ -31,8 +31,8 @@ CONFIG_I2C=y
 CONFIG_I2C_CHARDEV=y
 
 ##eeprom drivers for dimm info etc
-CONFIG_EEPROM_AT24=y
-CONFIG_EEPROM_EE1004=y
+CONFIG_EEPROM_AT24=m
+CONFIG_EEPROM_EE1004=m
 
 ##I have yet to see a device that needs optimize for size. 
 ##(with the caveat that you may need to move your initrd to an approp address)
@@ -42,12 +42,37 @@ CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
 ##can't say I've tested it much but some utils really don't like not having it
 CONFIG_IPV6=y
 
-##make sure loopback device support included
-CONFIG_BLK_DEV_LOOP=y
+CONFIG_ZRAM=m
+CONFIG_BLK_DEV_NULL_BLK=m
+CONFIG_BLK_DEV_RAM=m
+CONFIG_BONDING=m
+CONFIG_CFG80211=m
 
-##filesystems 
-CONFIG_SQUASHFS=y
-CONFIG_SQUASHFS_EMBEDDED=y
-CONFIG_SQUASHFS_XZ=y
-CONFIG_SQUASHFS_ZLIB=y
+##make sure loopback device support included
+CONFIG_BLK_DEV_LOOP=m
+
+##filesystems, try to keep non-initrd an option for most configs while keeping 
+## kernel size under control while also providing wide support generally.  
+CONFIG_SQUASHFS=m
+CONFIG_SQUASHFS_EMBEDDED=m
+CONFIG_SQUASHFS_XZ=m
+CONFIG_SQUASHFS_ZLIB=m
 CONFIG_SQUASHFS_4K_DEVBLK_SIZE=y
+CONFIG_MTD_UBI=y
+CONFIG_UBIFS_FS=y
+
+CONFIG_JFFS2_FS=m
+CONFIG_CRAMFS=m
+CONFIG_NFS_FS=m
+CONFIG_NFSD=m
+CONFIG_NFSD_V3=y
+CONFIG_NFSD_V4=y
+CONFIG_NFS_FS=m
+CONFIG_NFS_V2=m
+CONFIG_NFS_V3=m
+CONFIG_NFS_V4=m
+CONFIG_LOCKD=m
+CONFIG_SUNRPC=m
+
+## kexec where possible
+CONFIG_KEXEC=y
