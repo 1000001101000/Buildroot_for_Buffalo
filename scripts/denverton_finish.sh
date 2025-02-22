@@ -4,8 +4,6 @@
 
 ../scripts/common_finish
 
-echo $INIT_TYPE
-
 custom_module "it87ts-1.0"
 echo it87ts > "$TARGET_DIR/etc/modules-load.d/sensors.conf"
 
