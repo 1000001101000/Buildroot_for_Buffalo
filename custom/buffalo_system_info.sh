@@ -36,16 +36,24 @@ esac
 uname -m | grep -q armv5
 if [ $? -eq 0 ]; then
   ##nearly all hwmon, check for exceptions later
-  fan_type="hwmon"
+  fan_type="gpio"
 
   ##only one variation of micon, and nothing without one even has ttyS1, just see if something responds
   micro-evtd -q -s 8083 && micon_ver=2 && micon_port="/dev/ttyS1" && shutdown_type="micon" && fan_type="miconv2"
   ##check micon response, are those all the same?
   case $machine in
+  "Buffalo Linkstation LS-XL")
+  fan_type="";;
   "Buffalo Linkstation LS-QL")
   shutdown_type="rtc";;
   "Buffalo Linkstation LS-WXL" | "Buffalo Linkstation LS-WVL" | "Buffalo Linkstation LS-QVL")
   shutdown_type="phy";;
+  "Buffalo Linkstation Pro/Live"|"Buffalo Terastation Pro II/Live"|"Buffalo Terastation TS-XEL"|"Buffalo Nas WXL")
+  micon_ver=2
+  micon_port="/dev/ttyS1"
+  shutdown_type="micon"
+  fan_type="miconv2"
+  ;;
   esac
   ##a couple linkstations have no fan
 fi ##end armel
