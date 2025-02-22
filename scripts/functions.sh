@@ -8,10 +8,11 @@ grep -qe '^BR2_ARM_EABIHF=y' "$BR2_CONFIG" && ARCH_TYPE="armhf"
 grep -qe '^BR2_x86_64=y' "$BR2_CONFIG" && ARCH_TYPE="amd64"
 grep -qe '^BR2_aarch64=y' "$BR2_CONFIG" && ARCH_TYPE="arm64"
 custom_dir="$CONFIG_DIR/../custom"
-
 bootdir="$BINARIES_DIR/boottmp"
-[ -d "$bootdir" ] && rm -rf "$bootdir" 2>/dev/null
-mkdir "$bootdir"
+
+eval "$(grep -e "^BR2_LINUX_KERNEL_INTREE_DTS_NAME" "$BR2_CONFIG")"
+BR2_LINUX_KERNEL_INTREE_DTS_NAME=`basename $BR2_LINUX_KERNEL_INTREE_DTS_NAME 2>/dev/null`
+dtb_prefix=`echo $BR2_LINUX_KERNEL_INTREE_DTS_NAME | cut -d\- -f1`
 
 bootimg="$BINARIES_DIR/boot.img"
 diskimg="$BINARIES_DIR/disk.img"
@@ -266,6 +267,9 @@ syslinux_setup()
 {
   syslinux_cfg
   cp "$BINARIES_DIR"/syslinux/*.c32 "$bootdir"
+  bootfs_copy "$BINARIES_DIR/initrd.gz"
+  bootfs_copy "$BINARIES_DIR/bzImage"
+  bootfs_copy "$BINARIES_DIR/memtest.bin" "memtest86" ##make optional?
 }
 
 syslinux_gpt_install()
@@ -307,6 +311,11 @@ create_image()
   if [ "$bootfs_type" = "fat32" ]; then
     #set boot fs as "bootable" so syslinux can use it
     sgdisk "$diskimg" --attributes=1:set:2  >/dev/null
+  fi
+
+  ## if system needs hybrid gpt/mbr to boot set that up.
+  if [ "$dtb_prefix" = "mv78100" ] || [ "$dtb_prefix" = "orion5x" ]; then
+    sgdisk -h 1:EE "$diskimg" >/dev/null
   fi
 
   #get sector size of partition table, should always be 512
@@ -511,6 +520,11 @@ bootfs_prep()
 {
   rm -rf "$bootdir" 2>/dev/null
   mkdir "$bootdir"
+  local add_if_found="rootfs.squashfs"
+  for found in $add_if_found
+  do
+    [ -f "$BINARIES_DIR/$found" ] && bootfs_copy "$BINARIES_DIR/$found"
+  done
 }
 
 bootfs_copy()
@@ -527,15 +541,13 @@ bootfs_dtb_copy()
 
 create_bootfs()
 {
+  ###copy in the syslinux binaries and config if needed
+  grep -q "BR2_TARGET_SYSLINUX=y" "$BR2_CONFIG" && syslinux_setup
+
+  ##create one of the sha1 manifests of the boot dir
   cd "$bootdir" || exit 1
   sha1sum * > FW_CHECKSUM.SHA1
   cd - >/dev/null || exit 1
-
-  ### for use of test scripts, trying to avoid ending up in NAND/etc
-#  touch "$bootdir/first_boot"
-
-  ###copy in the syslinux binaries and config if needed
-  grep -q "BR2_TARGET_SYSLINUX=y" "$BR2_CONFIG" && syslinux_setup
 
   bootsize="$(du --apparent-size -shBM "$bootdir" | cut -dM -f1)"
   bootsize=$((bootsize+100))
@@ -547,9 +559,14 @@ create_bootfs()
     ##install syslinux loader to mbt/gpt
     grep -q "BR2_TARGET_SYSLINUX=y" "$BR2_CONFIG" && syslinux --install "$bootimg"
   fi
-  ##larger Inode should be unimportant until at least 2038?
+
   if [ "$bootfs_type" = "ext3" ]; then
-    mkfs.ext3 -U "$bootID" -d "$bootdir" "$bootimg"
+    local ext3_flags=""
+    ext3_flags+=" -U \"$bootID\""
+    ext3_flags+=" -d \"$bootdir\""
+    [ "$dtb_prefix" = "orion5x" ] && ext3_flags+=" -I 128"
+    [ "$dtb_prefix" = "mv78100" ] && ext3_flags+=" -I 128"
+    eval "mkfs.ext3 $ext3_flags \"$bootimg\""
   fi
 }
 
@@ -564,13 +581,38 @@ gen_appended_uImage()
 {
   local output="uImage.buffalo"
   local shim="$ARCH_TYPE""_shim"
-  eval "$(grep -e "^BR2_LINUX_KERNEL_INTREE_DTS_NAME" "$BR2_CONFIG")"
-  BR2_LINUX_KERNEL_INTREE_DTS_NAME=`basename $BR2_LINUX_KERNEL_INTREE_DTS_NAME`
+  local dtb="$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb"
+  local machfile="$BINARIES_DIR/machtype"
+  >"$machfile"
   cp "$custom_dir/$shim" "$BINARIES_DIR/"
-  find "$kernel_dir" -name "$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
+  find "$kernel_dir" -name "$dtb" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
   find "$kernel_dir" -name "zImage" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
   [ "$BR2_LINUX_KERNEL_INTREE_DTS_NAME" = "kirkwood-terastation-tsxel" ] && output="uImage-88f6281.buffalo"
-  cat "$BINARIES_DIR/$shim" "$BINARIES_DIR/zImage" "$BINARIES_DIR/$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb" > "$BINARIES_DIR/katkern"
+  dtb="$BINARIES_DIR/$dtb"
+  if [ "$BR2_LINUX_KERNEL_INTREE_DTS_NAME" = "orion5x-terastation-ts2pro" ]; then
+    echo -e -n "\\x06\\x1c\\xa0\\xe3\\x30\\x10\\x81\\xe3" > "$machfile"
+    > "$dtb"
+  fi
+  if [ "$dtb_prefix" = "mv78100" ]; then
+    echo -e -n "\\x0a\\x1c\\xa0\\xe3\\x89\\x10\\x81\\xe3" > "$machfile"
+    > "$dtb"
+  fi
+  cat "$machfile" "$BINARIES_DIR/$shim" "$BINARIES_DIR/zImage" "$dtb" > "$BINARIES_DIR/katkern"
   mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n buildroot-kernel -d "$BINARIES_DIR/katkern" "$BINARIES_DIR/$output"
+  bootfs_copy "$BINARIES_DIR/$output"
+}
+
+generate_initrd_uboot()
+{
+  local variant="$1"
+  local rootfsID="$2"
+  local bootID="$3"
+
+  generate_initrd "$variant" "$rootfsID" "$bootID"
+
+  local output="initrd.buffalo"
+  [ "$variant" = "alpine" ] && output="uInitrd-generic.buffalo"
+  mkimage -A arm -O linux -T ramdisk -C gzip -a 0x0 -e 0x0 -n buildroot-initrd -d "$BINARIES_DIR/initrd.gz" "$BINARIES_DIR/$output"
+
   bootfs_copy "$BINARIES_DIR/$output"
 }
