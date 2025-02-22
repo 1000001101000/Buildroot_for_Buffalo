@@ -6,8 +6,6 @@ rootfs_type="ext4"
 ##import common functions
 . ../scripts/functions.sh
 
-bootfs_prep
-
 ##pad the dtbs so uboot can update them
 pad_dtbs
 
