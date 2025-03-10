@@ -1,16 +1,24 @@
 
 datesuff="$(date +%Y%m%d%H%M)"
-grep -q "BR2_INIT_SYSTEMD=y" "$BR2_CONFIG" && INIT_TYPE="SYSTEMD"
-grep -q "BR2_INIT_OPENRC=y" "$BR2_CONFIG" && INIT_TYPE="OPENRC"
 
-grep -qe '^BR2_ARM_EABI=y' "$BR2_CONFIG" && ARCH_TYPE="armel"
-grep -qe '^BR2_ARM_EABIHF=y' "$BR2_CONFIG" && ARCH_TYPE="armhf"
-grep -qe '^BR2_x86_64=y' "$BR2_CONFIG" && ARCH_TYPE="amd64"
-grep -qe '^BR2_aarch64=y' "$BR2_CONFIG" && ARCH_TYPE="arm64"
 custom_dir="$CONFIG_DIR/../custom"
 bootdir="$BINARIES_DIR/boottmp"
 
-eval "$(grep -e "^BR2_LINUX_KERNEL_INTREE_DTS_NAME" "$BR2_CONFIG")"
+loadvars="BR2_LINUX_KERNEL_IMAGEGZ BR2_LINUX_KERNEL_INTREE_DTS_NAME"
+loadvars+=" BR2_ARM_EABI BR2_ARM_EABIHF BR2_x86_64 BR2_aarch64"
+loadvars+=" BR2_INIT_SYSTEMD BR2_INIT_OPENRC"
+loadvars+=" BR2_TARGET_SYSLINUX BR2_PACKAGE_ZFS BR2_PACKAGE_DCRON BR2_PACKAGE_E2FSPROGS_E2SCRUB"
+
+for x in $loadvars
+do
+  eval "$(grep -e "^$x=" "$BR2_CONFIG")"
+done
+
+[ "$BR2_ARM_EABI" = "y" ] && ARCH_TYPE="armel"
+[ "$BR2_ARM_EABIHF" = "y" ] && ARCH_TYPE="armhf"
+[ "$BR2_x86_64" = "y" ] && ARCH_TYPE="amd64"
+[ "$BR2_aarch64" = "y" ] && ARCH_TYPE="arm64"
+
 BR2_LINUX_KERNEL_INTREE_DTS_NAME=`basename $BR2_LINUX_KERNEL_INTREE_DTS_NAME 2>/dev/null`
 dtb_prefix=`echo $BR2_LINUX_KERNEL_INTREE_DTS_NAME | cut -d\- -f1`
 
@@ -35,6 +43,10 @@ rootpartID="$(blkid -o value -s UUID "$rootimg")"
 
 kver="$(ls $BUILD_DIR | grep -e ^linux-[1-9] | sed 's/linux-//g')"
 kernel_dir="$BUILD_DIR/linux-$kver"
+kshort=$((`echo "$kver" | cut -d. -f1`))
+
+eval "$(grep ^CONFIG_LOCALVERSION= "$kernel_dir/.config")"
+variant=`echo $CONFIG_LOCALVERSION | cut -d- -f2`
 
 debian_import()
 {
@@ -102,7 +114,6 @@ custom_module()
         local mod_dir="$custom_dir/$1"
         local fullver="$kver$CONFIG_LOCALVERSION"
         local cross="$HOST_DIR/bin/$(ls output/host/bin/ | grep -e '^.*buildroot.*gcc$' | sed 's/...$//g')"
-        eval "$(grep ^CONFIG_LOCALVERSION= "$kernel_dir/.config")"
 
         cd "$mod_dir" || exit 99
         make clean
@@ -140,10 +151,6 @@ mail_setup()
 generate_initrd()
 {
 local arch="$(echo $MACHTYPE | cut -d\- -f1)"
-
-local variant="$1"
-local rootfsID="$2"
-local bootID="$3"
 
 local importbins="bin/busybox sbin/blkid sbin/mdadm usr/bin/micro-evtd bin/lsblk usr/bin/timeout usr/sbin/ubiattach"
 local workdir="$BINARIES_DIR/initrdtmp"
@@ -197,7 +204,7 @@ done
 ln -s "/lib" "$workdir/lib64"
 
 #create symlinks for some needed commands
-for x in mount umount switch_root sh cat sleep getty watch vi ip mkdir login cd ls chmod sed awk grep dd xxd printf head xargs dirname find uname insmod reboot
+for x in mount umount switch_root sh cat sleep getty watch vi ip mkdir login cd ls chmod sed awk grep dd xxd printf head xargs dirname find uname insmod reboot cut
 do
   ln -s /bin/busybox "$workdir/bin/$x"
 done
@@ -225,6 +232,8 @@ if [ -d "$BINARIES_DIR/intel-ucode" ]; then
 	mv "$BINARIES_DIR/initrd.gz" "$BINARIES_DIR/initrd.orig"
 	cat "$BINARIES_DIR/ucode.cpio" "$BINARIES_DIR/initrd.orig" > "$BINARIES_DIR/initrd.gz"
 fi
+
+[ "$variant" = "ls500" ] && bootfs_copy "$BINARIES_DIR/initrd.gz" rescue.root.nand.cpio.gz_pad.img
 }
 
 pad_dtbs()
@@ -301,7 +310,9 @@ create_image()
 
   ##create boot and rootfs partitions with precomputed partuuid
   sgdisk -n 1:0:+"$bootsize"M "$diskimg" >/dev/null
-  sgdisk -n 2:0 "$diskimg" >/dev/null
+  sgdisk -c 1:BRBOOT "$diskimg" >/dev/null
+  sgdisk -n 2:0 "$diskimg" -c "BRROOT" >/dev/null
+  sgdisk -c 2:BRROOT "$diskimg" >/dev/null
   sgdisk -u 2:$rootpartID "$diskimg" >/dev/null
 
   ##set boot and rootfs partition types
@@ -340,7 +351,7 @@ create_image()
   dd if="$rootimg" of="$diskimg" bs="$sectorsz" seek="$rootstart" conv=notrunc 2>/dev/null
   if [ $? -ne 0 ]; then "write boot image failed"; exit 99; fi
 
-  grep -q "BR2_TARGET_SYSLINUX=y" "$BR2_CONFIG" && syslinux_gpt_install
+  [ "$BR2_TARGET_SYSLINUX" = "y" ] && syslinux_gpt_install
 }
 
 debian_lib_fixup()
@@ -378,14 +389,15 @@ alpine_openrc_conf()
 
 network_setup()
 {
-  if [ "$INIT_TYPE" = "SYSTEMD" ]; then
+  if [ "$BR2_INIT_SYSTEMD" = "y" ]; then
     cp "$custom_dir"/*.link "$TARGET_DIR/etc/systemd/network/"
   fi
+  [ "$variant" = "ls700" ] && cp "$custom_dir/ls700_mac" "$TARGET_DIR/etc/network/if-pre-up.d/"
 }
 
 getty_setup()
 {
-  if [ "$INIT_TYPE" = "SYSTEMD" ] && [ "$ARCH_TYPE" = "amd64" ]; then
+  if [ "$BR2_INIT_SYSTEMD" = "y" ] && [ "$ARCH_TYPE" = "amd64" ]; then
     mkdir "$TARGET_DIR/etc/systemd/system/getty.target.wants/" 2>/dev/null
     ln -s "/usr/lib/systemd/system/getty@.service" "$TARGET_DIR/etc/systemd/system/getty.target.wants/getty@tty1.service"
   fi
@@ -393,20 +405,20 @@ getty_setup()
 
 rsyncd_setup()
 {
-  if [ "$INIT_TYPE" = "OPENRC" ]; then
+  if [ "$BR2_INIT_OPENRC" = "y" ]; then
     alpine_openrc_init "rsync/rsyncd"
     alpine_openrc_conf "rsync/rsyncd"
     openrc_register_service "boot" "rsyncd"
   fi
 
-  if [ "$INIT_TYPE" = "SYSTEMD" ]; then
+  if [ "$BR2_INIT_SYSTEMD" = "y" ]; then
     debian_import rsync bookworm "$ARCH_TYPE" main "./lib/systemd/system/rsync.service"
   fi
 }
 
 mdadm_setup()
 {
-  if [ "$INIT_TYPE" = "OPENRC" ]; then
+  if [ "$BR2_INIT_OPENRC" = "y" ]; then
     local x=""
     for x in mdadm mdadm-raid
     do
@@ -422,8 +434,8 @@ mdadm_setup()
 
 zfs_setup()
 {
-  grep -q "BR2_PACKAGE_ZFS=y" "$BR2_CONFIG" || return
-  if [ "$INIT_TYPE" = "OPENRC" ]; then
+  [ "$BR2_PACKAGE_ZFS" = "y" ] || return
+  if [ "$BR2_INIT_OPENRC" = "y" ]; then
   num=85
   for x in zfs-load-key zfs-import zfs-mount zfs-share zfs-zed
   do
@@ -436,10 +448,10 @@ zfs_setup()
 
 cron_setup()
 {
-  grep -q "BR2_PACKAGE_DCRON=y" "$BR2_CONFIG" || return
+  [ "$BR2_PACKAGE_DCRON" = "y" ] || return
   crondir="/var/spool/cron"
   ##work around having /var/ entires symlinked to /tmp by moving the cron stuff
-  if [ "$INIT_TYPE" = "OPENRC" ]; then
+  if [ "$BR2_INIT_OPENRC" = "y" ]; then
     crondir="/var/cron"
     echo 'DCRON_OPTS="-S -c '"$crondir"'/crontabs -t '"$crondir"'/cronstamps -l info"' > "$TARGET_DIR/etc/conf.d/dcron"
     mkdir -p "$TARGET_DIR$crondir/crontabs" "$TARGET_DIR$crondir/cronstamps"
@@ -462,7 +474,7 @@ cron_setup()
   ##add missing items and stub crontab etc
   mkdir "$TARGET_DIR$crondir/cronstamps/" 2>/dev/null
   echo "# m h  dom mon dow   command" > "$TARGET_DIR$crondir/crontabs/root"
-  grep -q "BR2_PACKAGE_E2FSPROGS_E2SCRUB=y" "$BR2_CONFIG" && sed -i 's/root test/test/g' "$TARGET_DIR/etc/cron.d/e2scrub_all"
+  [ "$BR2_PACKAGE_E2FSPROGS_E2SCRUB" = "y" ] && sed -i 's/root test/test/g' "$TARGET_DIR/etc/cron.d/e2scrub_all"
   ##what's up with that mdadm one?
 }
 
@@ -490,7 +502,7 @@ libmicon_install()
     cp "$custom_dir/$source_script" "$TARGET_DIR/usr/bin/"
     chmod +x "$TARGET_DIR/usr/bin/$source_script"
   done
-  if [ "$INIT_TYPE" = "SYSTEMD" ]; then
+  if [ "$BR2_INIT_SYSTEMD" = "y" ]; then
     for source_script in custom_startup.service hdd_fan_daemon.service
     do
       cp "$custom_dir/$source_script" "$TARGET_DIR/etc/systemd/system/"
@@ -498,7 +510,7 @@ libmicon_install()
     done
     ln -s "/usr/bin/shutdown_wrapper.sh" "$TARGET_DIR/lib/systemd/system-shutdown/shutdown_wrapper"
   fi
-  if [ "$INIT_TYPE" = "OPENRC" ]; then
+  if [ "$BR2_INIT_OPENRC" = "y" ]; then
     for source_script in miconshutdown miconstartup fandaemon
     do
       cp "$custom_dir/openrc_$source_script" "$TARGET_DIR/etc/init.d/$source_script"
@@ -542,7 +554,7 @@ bootfs_dtb_copy()
 create_bootfs()
 {
   ###copy in the syslinux binaries and config if needed
-  grep -q "BR2_TARGET_SYSLINUX=y" "$BR2_CONFIG" && syslinux_setup
+  [ "$BR2_TARGET_SYSLINUX" = "y" ] && syslinux_setup
 
   ##create one of the sha1 manifests of the boot dir
   cd "$bootdir" || exit 1
@@ -557,7 +569,7 @@ create_bootfs()
     mformat -N "$bootIDnum" -F -i "$bootimg" ::
     mcopy -s -i "$bootimg" "$bootdir"/* ::/
     ##install syslinux loader to mbt/gpt
-    grep -q "BR2_TARGET_SYSLINUX=y" "$BR2_CONFIG" && syslinux --install "$bootimg"
+    [ "$BR2_TARGET_SYSLINUX" = "y" ] && syslinux --install "$bootimg"
   fi
 
   if [ "$bootfs_type" = "ext3" ]; then
@@ -579,40 +591,85 @@ cgroupv1_tweak()
 
 gen_appended_uImage()
 {
+  local kernel="zImage"
   local output="uImage.buffalo"
-  local shim="$ARCH_TYPE""_shim"
+  local shim="$BINARIES_DIR/bootshim"
   local dtb="$BR2_LINUX_KERNEL_INTREE_DTS_NAME.dtb"
   local machfile="$BINARIES_DIR/machtype"
+  local arch="arm"
+  local addr="0x00008000"
+  local compress="none"
+
   >"$machfile"
-  cp "$custom_dir/$shim" "$BINARIES_DIR/"
-  find "$kernel_dir" -name "$dtb" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
-  find "$kernel_dir" -name "zImage" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
+  >"$shim"
+  >"$BINARIES_DIR/none.dtb"
+
+  ##handle the variations here rather than pass lots of variables
+  [ "$variant" = "alpine" ] || [ "$variant" = "ls700" ] && output="uImage-generic.buffalo"
+  [ "$variant" = "ls500" ] && addr="0x108000" && output="nand.uImage"
+  [ "$ARCH_TYPE" = "arm64" ] && arch="arm64" && addr="0x2200000" && kernel="Image" && dtb=".dtb"
+  [ "$variant" = "armada370" ] || [ "$variant" = "armadaxp" ] || [ "$variant" = "marvellv5" ] && cp "$custom_dir/$ARCH_TYPE""_shim" "$shim"
   [ "$BR2_LINUX_KERNEL_INTREE_DTS_NAME" = "kirkwood-terastation-tsxel" ] && output="uImage-88f6281.buffalo"
-  dtb="$BINARIES_DIR/$dtb"
-  if [ "$BR2_LINUX_KERNEL_INTREE_DTS_NAME" = "orion5x-terastation-ts2pro" ]; then
-    echo -e -n "\\x06\\x1c\\xa0\\xe3\\x30\\x10\\x81\\xe3" > "$machfile"
-    > "$dtb"
-  fi
-  if [ "$dtb_prefix" = "mv78100" ]; then
-    echo -e -n "\\x0a\\x1c\\xa0\\xe3\\x89\\x10\\x81\\xe3" > "$machfile"
-    > "$dtb"
-  fi
-  cat "$machfile" "$BINARIES_DIR/$shim" "$BINARIES_DIR/zImage" "$dtb" > "$BINARIES_DIR/katkern"
-  mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n buildroot-kernel -d "$BINARIES_DIR/katkern" "$BINARIES_DIR/$output"
+  [ "$BR2_LINUX_KERNEL_IMAGEGZ" ] && compress="gzip" && kernel="Image.gz"
+  ##some steps redundant except when cleaing out image/target dirs for testing.
+
+  ##copy kernel + dtb to cover some edge cases
+  find "$kernel_dir" -name "$dtb" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
+  find "$kernel_dir" -name "$kernel" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
+
+  [ "$dtb" = "orion5x-terastation-ts2pro.dtb" ] && echo -e -n "\\x06\\x1c\\xa0\\xe3\\x30\\x10\\x81\\xe3" > "$machfile"
+  [ "$dtb_prefix" = "mv78100" ] && echo -e -n "\\x0a\\x1c\\xa0\\xe3\\x89\\x10\\x81\\xe3" > "$machfile"
+
+  [ "$dtb" = ".dtb" ] && dtb="none.dtb" && dtb="$BINARIES_DIR/$dtb"
+  kernel="$BINARIES_DIR/$kernel"
+
+  ##if doing non-dtb init empty the dtb ahead of append step
+  [ -s "$machfile" ] && >"$dtb"
+
+  cat "$machfile" "$shim" "$kernel" "$dtb" > "$BINARIES_DIR/katkern"
+  mkimage -A "$arch" -O linux -T kernel -C "$compress" -a "$addr" -e "$addr" -n buildroot-kernel -d "$BINARIES_DIR/katkern" "$BINARIES_DIR/$output"
   bootfs_copy "$BINARIES_DIR/$output"
+  rm "$BINARIES_DIR/none.dtb" 2>/dev/null
 }
 
 generate_initrd_uboot()
 {
-  local variant="$1"
-  local rootfsID="$2"
-  local bootID="$3"
-
-  generate_initrd "$variant" "$rootfsID" "$bootID"
-
+  generate_initrd
+  local arch="arm"
   local output="initrd.buffalo"
-  [ "$variant" = "alpine" ] && output="uInitrd-generic.buffalo"
-  mkimage -A arm -O linux -T ramdisk -C gzip -a 0x0 -e 0x0 -n buildroot-initrd -d "$BINARIES_DIR/initrd.gz" "$BINARIES_DIR/$output"
+  local addr="0x0"
+
+  [ "$variant" = "alpine" ] || [ "$variant" = "ls700" ] && output="uInitrd-generic.buffalo"
+  [ "$ARCH_TYPE" = "arm64" ] && arch="arm64"
+  mkimage -A $arch -O linux -T ramdisk -C gzip -a "$addr" -e "$addr" -n buildroot-initrd -d "$BINARIES_DIR/initrd.gz" "$BINARIES_DIR/$output"
 
   bootfs_copy "$BINARIES_DIR/$output"
+}
+
+old_xfs_bins()
+{
+  ##grab xfs programs compatabile with the older xfs version supported by kernel
+  ##also grab readline5 library needed by some of them
+  local dist="jessie"
+  [ $((kshort)) -eq 4 ] && dist="stretch"
+  debian_import xfsprogs "$dist" "$ARCH_TYPE" main "./usr/sbin/ ./sbin/"
+  debian_import libreadline5 buster "$ARCH_TYPE" main "./lib/"
+  debian_import libtinfo6 buster "$ARCH_TYPE" main "./lib/"
+}
+
+old_mdadm_bins()
+{
+  ##grab older mdadm binary compatible with this kernel's interfaces
+  local dist="jessie"
+  [ $((kshort)) -eq 4 ] && dist="stretch"
+  debian_import mdadm "$dist" "$ARCH_TYPE" main "./etc/cron.daily/ ./etc/cron.d/ ./etc/logcheck/ ./lib/udev/ ./sbin/ ./usr/share/mdadm/"
+  sed -i 's/ root / /g' "$TARGET_DIR/etc/cron.d/mdadm"
+}
+
+memory_config()
+{
+  ##memory tweaks based on testing
+  if [ "$variant" = "armada370" ] || [ "$variant" = "armadaxp" ]; then
+    echo "vm.min_free_kbytes = 10240" > "$TARGET_DIR/etc/sysctl.d/minfree.conf"
+  fi
 }
