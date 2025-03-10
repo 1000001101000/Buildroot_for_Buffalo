@@ -50,6 +50,7 @@ machinetype="$(sed -n '/Hardware/ {s/^Hardware\s*:\s//;p}' /proc/cpuinfo)"
 ##load any modules that made it to the initrd
 if [ -d "/lib/modules/$(uname -r)/" ]; then
   find /lib/modules/$(uname -r)/ -name *.ko | xargs -n1 insmod
+  sleep 5 ##give new devices a moment to be detected
 fi
 
 ##grab fs UUIDs set at build time
@@ -157,33 +158,65 @@ else
   lcd_put " Custom InitRD  " " Finding ROOTFS "
 fi
 
+##see if this helps speed up detection once system starts
+#presumably needs some module work first
+#echo "0bda 8156" > /sys/bus/usb/drivers/r8152/new_id'
+
 echo "custom initrd, looking for rootfs"
 
 ##look for rootfs device with matching UUID
 ROOTDEV="$(blkid -U "$rootfsID")"
 BOOTDEV="$(blkid -U "$bootID")"
 
-if [ "$variant" = "armada370" ] || [ "$variant" = "armadaxp" ]; then
-  grep -q nandboot /proc/cmdline
-  if [ $? -eq 0 ]; then
-    echo "Attempting NAND boot based on cmdline params"
-    if [ -e "/dev/mtd3" ]; then
-      ubiattach -m 3 -d 1
-      ubiattach -m 2 -d 0
-      BOOTDEV=`ls /dev/ubi0_? | head -n1`
-    else
-      ubiattach -m 2 -d 1
-      BOOTDEV=""
-    fi
-    ROOTDEV=`ls /dev/ubi1_? | head -n1`
-  fi
+
+####usually we have a backup method to boot sata/usb
+####if we didn't we'd want some method to trigger it
+emmcboot=0
+grep -q "boot_device_type=eMMC" /proc/cmdline && emmcboot=1
+[ "$emmcboot" = "1" ] && ROOTDEV="$(blkid -t PARTLABEL="BRROOT" -o device /dev/mmc*)" && BOOTDEV=""
+
+
+nandboot=0
+for x in "nandboot" "rootfstype=ubifs"
+do
+  grep -q "$x" /proc/cmdline && nandboot=1
+done
+
+if [ $nandboot -eq 1 ]; then
+  echo "Attempting NAND boot based on cmdline params"
+  mkdir /mnt/ubi
+  ##for many devs the cmdline params will have handled everything already.
+  ##in that case we can probably just exit.
+  ##eventually we can test all relavant models and make any driver/dtb changes to ensure that.
+  ##we can also scan all nand partitions looking for something we can boot.
+
+  for x in `grep mtd /proc/mtd | cut -d: -f1`
+  do
+    [ `dd if=/dev/$x bs=4 count=1 2>/dev/null` = "UBI#" ] || continue
+    ubiattach -p /dev/$x -d 9
+    tmpdev="/dev/ubi9_?"
+    mount -t ubifs -o ro $tmpdev /mnt/ubi
+    [ -f "/mnt/ubi/linuxrc" ] && grep -q Buildroot "/mnt/ubi/etc/os-release" && ROOTDEV="$tmpdev" && BOOTDEV=""
+    umount /mnt/ubi
+    [ -n "$ROOTDEV" ] && break
+  done
+#    if [ -e "/dev/mtd3" ]; then
+#      ubiattach -m 3 -d 1
+#      ubiattach -m 2 -d 0
+#      BOOTDEV=`ls /dev/ubi0_? | head -n1`
+#    else
+#      ubiattach -m 2 -d 1
+#      BOOTDEV=""
+#    fi
+#    ROOTDEV=`ls /dev/ubi1_? | head -n1`
 fi
+
 
 ##if root was not found do a more intrusive search
 if [ "$ROOTDEV" = "" ]; then
 
   ##we might still be waiting for some devices to show up, wait a few sec just in case.
-  sleep 5
+  sleep 10
 
   ##mdadm autostart doesn't seem to work even with metadata 0.90
   ##for now start any arrays present and try again.
@@ -201,7 +234,9 @@ if [ "$ROOTDEV" = "" ]; then
   ROOTDEV="$(blkid -U "$rootfsID")"
 
   if [ "$ROOTDEV" = "" ]; then
-    echo "failed to find rootfs"
+    echo "failed to find rootfs by UUID, trying by PARTLABEL"
+    BOOTDEV="$(blkid -t PARTLABEL="BRBOOT" -o device)"
+    ROOTDEV="$(blkid -t PARTLABEL="BRROOT" -o device)"
   fi
 fi
 
@@ -220,7 +255,7 @@ else
   echo "ROOTFS: $RTYPE $ROOTDEV"
   echo "BOOTFS: $BTYPE $BOOTDEV"
   mount -t "$RTYPE" -o ro "$ROOTDEV" /mnt/root 2>/dev/null
-  mount -t "$BTYPE" "$BOOTDEV" /mnt/root/boot 2>/dev/null
+  [ -n "$BOOTDEV" ] && mount -t "$BTYPE" "$BOOTDEV" /mnt/root/boot 2>/dev/null
 fi
 
 lcd_put " Custom InitRD  " "Attempting Boot "
