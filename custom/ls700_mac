@@ -1,0 +1,6 @@
+
+
+if [ "${IFACE}" = "eth0" ]; then
+real_mac=`dd if=/dev/mmcblk0p2 bs=6 count=1 skip=$((0x0007ffc0))B 2>/dev/null| hexdump -e ' 5/1 "%02X:" 1/1 "%02X"'`
+ip link set eth0 address $real_mac
+fi
