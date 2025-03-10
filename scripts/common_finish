@@ -31,13 +31,22 @@ cron_setup
 ##really just custom stuff at this point
 libmicon_install
 
+##if running a sufficently old kernel, pull in compatibile bins for xfs/mdadm
+if [ $((kshort)) -le 4 ]; then
+  old_xfs_bins
+  old_mdadm_bins
+fi
+
+##tweak to force cgroupv1 when cgroupv2 isn't sufficiently supported.
+[ $((kshort)) -eq 4 ] && cgroupv1_tweak
+
 ###check if installed I imagine, ends up more or less noop for systemd, but that is also fine?
 mdadm_setup
 
 ##any mainline vs oot concern?
 r8152_config
 
-##zfs init stuff for non systemd?
+##zfs init stuff for non systemd
 zfs_setup
 
 ##getty setup/fix
