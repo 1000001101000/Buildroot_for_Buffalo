@@ -28,7 +28,7 @@ fi ##end X86
 machinetype=`sed -n '/Hardware/ {s/^Hardware\s*:\s//;p}' /proc/cpuinfo`
 machine="$machinetype"
 case $machine in
-        *"Device Tree)")
+        *"Device Tree)"|"")
         machine=$(cat /proc/device-tree/model)
         ;;
 esac
@@ -39,7 +39,7 @@ if [ $? -eq 0 ]; then
   fan_type="gpio"
 
   ##only one variation of micon, and nothing without one even has ttyS1, just see if something responds
-  micro-evtd -q -s 8083 && micon_ver=2 && micon_port="/dev/ttyS1" && shutdown_type="micon" && fan_type="miconv2"
+  micro-evtd -q -s 8083 && micon_ver=2 && micon_port="/dev/ttyS1" && shutdown_type="micon" && fan_type="micon"
   ##check micon response, are those all the same?
   case $machine in
   "Buffalo Linkstation LS-XL")
@@ -52,7 +52,7 @@ if [ $? -eq 0 ]; then
   micon_ver=2
   micon_port="/dev/ttyS1"
   shutdown_type="micon"
-  fan_type="miconv2"
+  fan_type="micon"
   ;;
   esac
   ##a couple linkstations have no fan
@@ -65,7 +65,7 @@ if [ $? -eq 0 ]; then ##alpine devs
     shutdown_type="micon"
     micon_ver=3
     micon_port="/dev/ttyUSB0"
-    fan_type="miconv3"
+    fan_type="micon"
   fi
   if [ "$machinetype" = "Marvell Armada 370/XP (Device Tree)" ]; then
     fan_type="gpio"
@@ -74,7 +74,7 @@ if [ $? -eq 0 ]; then ##alpine devs
       micon_ver=2
       micon_port="/dev/ttyS1"
       shutdown_type="micon"
-      fan_type="miconv2"
+      fan_type="micon"
       ;;
     "Buffalo Linkstation LS210D")
       fan_type=""
@@ -85,6 +85,12 @@ if [ $? -eq 0 ]; then ##alpine devs
     esac
   fi
 fi ##end armhf
+
+uname -m | grep -q aarch64
+if [ $? -eq 0 ]; then
+  fan_type="gpio"
+  ##assume some models I haven't looked at also have miconv3
+fi
 
 > /etc/buffalo_type
 echo "shutdown_type=$shutdown_type" >> /etc/buffalo_type
