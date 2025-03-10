@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Buildroot -g64cd8a7-dirty Configuration
+# Buildroot -g1ec9afa-dirty Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_HOST_GCC_AT_LEAST_4_9=y
@@ -408,7 +408,7 @@ BR2_OPTIMIZE_S=y
 BR2_SHARED_LIBS=y
 # BR2_SHARED_STATIC_LIBS is not set
 BR2_PACKAGE_OVERRIDE_FILE="$(CONFIG_DIR)/local.mk"
-BR2_GLOBAL_PATCH_DIR="$(TOPDIR)/../patches $(TOPDIR)/../patches/armada370"
+BR2_GLOBAL_PATCH_DIR="$(TOPDIR)/../patches"
 
 #
 # Advanced
