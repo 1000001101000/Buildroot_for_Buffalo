@@ -7,7 +7,7 @@ rootfs_type="ext4"
 ##import common functions
 . ../scripts/functions.sh
 
-generate_initrd "atom" "$rootfsID" "$bootID"
+generate_initrd
 
 create_image
 

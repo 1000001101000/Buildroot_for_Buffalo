@@ -1,13 +1,13 @@
 #!/bin/bash
 
-kernelcmd="rw earlyprintk audit=0 rootwait pcie_aspm=off"
+kernelcmd='rw earlyprintk audit=0 rootwait pcie_aspm=off acpi_osi="Linux"'
 bootfs_type="fat32"
 rootfs_type="ext4"
 
 ##import common functions
 . ../scripts/functions.sh
 
-generate_initrd "denverton" "$rootfsID" "$bootID"
+generate_initrd
 
 create_image
 

@@ -3,12 +3,11 @@
 bootfs_type="ext3"
 rootfs_type="ext4"
 
-##import common functions
 . ../scripts/functions.sh
 
 gen_appended_uImage
 
-generate_initrd_uboot "armada370" "$rootfsID" "$bootID"
+generate_initrd_uboot
 
 bootfs_dtb_copy
 
