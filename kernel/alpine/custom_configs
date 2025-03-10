@@ -44,3 +44,6 @@ CONFIG_CPU_FREQ=""
 
 ##needed for devices with > 2GB memory
 CONFIG_HIGHMEM=y
+
+## smaller kernel, why not?
+CONFIG_KERNEL_XZ=y
