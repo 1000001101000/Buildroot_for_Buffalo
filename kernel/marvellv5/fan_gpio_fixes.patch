@@ -1,0 +1,30 @@
+diff --git a/arch/arm/boot/dts/marvell/kirkwood-linkstation-6282.dtsi b/arch/arm/boot/dts/marvell/kirkwood-linkstation-6282.dtsi
+index dfac204..e7c3438 100644
+--- a/arch/arm/boot/dts/marvell/kirkwood-linkstation-6282.dtsi
++++ b/arch/arm/boot/dts/marvell/kirkwood-linkstation-6282.dtsi
+@@ -115,8 +115,8 @@ gpio_fan {
+ 		pinctrl-0 = <&pmx_fan_low &pmx_fan_high &pmx_fan_lock>;
+ 		pinctrl-names = "default";
+ 
+-		gpios = <&gpio0 17 GPIO_ACTIVE_LOW
+-			 &gpio0 16 GPIO_ACTIVE_LOW>;
++		gpios = <&gpio0 17 GPIO_ACTIVE_HIGH
++			 &gpio0 16 GPIO_ACTIVE_HIGH>;
+ 
+ 		gpio-fan,speed-map =
+ 				<   0 3>,
+diff --git a/arch/arm/boot/dts/marvell/kirkwood-lsxl.dtsi b/arch/arm/boot/dts/marvell/kirkwood-lsxl.dtsi
+index 5e0b139..14f1c99 100644
+--- a/arch/arm/boot/dts/marvell/kirkwood-lsxl.dtsi
++++ b/arch/arm/boot/dts/marvell/kirkwood-lsxl.dtsi
+@@ -168,8 +168,8 @@ gpio_fan {
+ 		compatible = "gpio-fan";
+ 		pinctrl-0 = <&pmx_fan_low &pmx_fan_high &pmx_fan_lock>;
+ 		pinctrl-names = "default";
+-		gpios = <&gpio0 19 GPIO_ACTIVE_LOW
+-		         &gpio0 18 GPIO_ACTIVE_LOW>;
++		gpios = <&gpio0 19 GPIO_ACTIVE_HIGH
++		         &gpio0 18 GPIO_ACTIVE_HIGH>;
+ 		gpio-fan,speed-map =
+ 				<0    3>,
+ 				<1500 2>,

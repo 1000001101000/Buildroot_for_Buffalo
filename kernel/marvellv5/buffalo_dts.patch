@@ -1,0 +1,895 @@
+diff --git a/arch/arm/boot/dts/kirkwood-6281.dtsi b/arch/arm/boot/dts/kirkwood-6281.dtsi
+new file mode 120000
+index 0000000..bbef637
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-6281.dtsi
+@@ -0,0 +1 @@
++marvell/kirkwood-6281.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-6282.dtsi b/arch/arm/boot/dts/kirkwood-6282.dtsi
+new file mode 120000
+index 0000000..c316cee
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-6282.dtsi
+@@ -0,0 +1 @@
++marvell/kirkwood-6282.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-linkstation-6282.dtsi b/arch/arm/boot/dts/kirkwood-linkstation-6282.dtsi
+new file mode 120000
+index 0000000..e6b347b
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-linkstation-6282.dtsi
+@@ -0,0 +1 @@
++marvell/kirkwood-linkstation-6282.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-linkstation-duo-6281.dtsi b/arch/arm/boot/dts/kirkwood-linkstation-duo-6281.dtsi
+new file mode 120000
+index 0000000..0d323bb
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-linkstation-duo-6281.dtsi
+@@ -0,0 +1 @@
++marvell/kirkwood-linkstation-duo-6281.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-linkstation-lsqvl.dts b/arch/arm/boot/dts/kirkwood-linkstation-lsqvl.dts
+new file mode 120000
+index 0000000..e38f3ba
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-linkstation-lsqvl.dts
+@@ -0,0 +1 @@
++marvell/kirkwood-linkstation-lsqvl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-linkstation-lsvl.dts b/arch/arm/boot/dts/kirkwood-linkstation-lsvl.dts
+new file mode 120000
+index 0000000..9dc8168
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-linkstation-lsvl.dts
+@@ -0,0 +1 @@
++marvell/kirkwood-linkstation-lsvl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-linkstation-lswsxl.dts b/arch/arm/boot/dts/kirkwood-linkstation-lswsxl.dts
+new file mode 120000
+index 0000000..3315c61
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-linkstation-lswsxl.dts
+@@ -0,0 +1 @@
++marvell/kirkwood-linkstation-lswsxl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-linkstation-lswvl.dts b/arch/arm/boot/dts/kirkwood-linkstation-lswvl.dts
+new file mode 120000
+index 0000000..ab1f71d
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-linkstation-lswvl.dts
+@@ -0,0 +1 @@
++marvell/kirkwood-linkstation-lswvl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-linkstation-lswxl.dts b/arch/arm/boot/dts/kirkwood-linkstation-lswxl.dts
+new file mode 120000
+index 0000000..399460c
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-linkstation-lswxl.dts
+@@ -0,0 +1 @@
++marvell/kirkwood-linkstation-lswxl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-linkstation-lsxl.dts b/arch/arm/boot/dts/kirkwood-linkstation-lsxl.dts
+new file mode 100644
+index 0000000..7c15fad
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-linkstation-lsxl.dts
+@@ -0,0 +1,131 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++*
++* Device Tree file for Buffalo Linkstation LS-XL
++*
++ */
++
++/dts-v1/;
++#include "kirkwood.dtsi"
++#include "kirkwood-6281.dtsi"
++
++/ {
++	model = "Buffalo Linkstation LS-XL";
++	compatible = "buffalo,tsxel", "marvell,kirkwood-88f6281", "marvell,kirkwood";
++
++	memory
++	{
++		device_type = "memory"; 
++		reg = <0x00000000 0x04000000>; /* 64 MB */
++	};
++	
++	ocp@f1000000
++	{
++		pinctrl: pin-controller@10000
++		{
++			pmx_led_power: pmx-led-power
++			{
++				marvell,pins = "mpp17";
++				marvell,function = "gpio";
++			};
++		};
++				
++		serial@12000
++		{
++			status = "okay";
++		};
++
++		sata@80000
++		{
++			nr-ports = <1>;
++			status = "okay";
++		};
++	};
++
++	gpio_leds
++	{
++		compatible = "gpio-leds";
++		pinctrl-0 = <&pmx_led_power>;
++		pinctrl-names = "default";
++
++		power
++		{
++			label = "lsxl:blue:power";
++			gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
++			default-state = "keep";
++		};
++	};
++
++	restart_poweroff
++	{
++		compatible = "restart-poweroff";
++	};
++};
++
++&mdio 
++{
++	status = "okay";
++	ethphy0: ethernet-phy@0 
++	{
++		device_type = "ethernet-phy";
++		reg = <0>;
++	};
++
++	ethphy1: ethernet-phy@8
++	{
++		device_type = "ethernet-phy";
++		reg = <8>;
++	};
++};
++
++&eth0 
++{
++	status = "okay";
++	ethernet0-port@0 
++	{
++		phy-handle = <&ethphy0>;
++	};
++};
++
++&eth1
++{
++	status = "okay";
++	ethernet1-port@0
++	{
++		phy-handle = <&ethphy1>;
++	};
++};
++
++&spi0
++{
++	status = "okay";
++
++	spi-flash@0
++	{
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "st,m25p40", "jedec,spi-nor";
++		reg = <0>;
++		spi-max-frequency = <25000000>;
++
++		partition@0
++		{
++			reg = <0x0 0x60000>;
++			label = "uboot";
++			read-only;
++		};
++
++		partition@60000
++		{
++			reg = <0x60000 0x10000>;
++			label = "dtb";
++			read-only;
++		};
++
++		partition@70000
++		{
++			reg = <0x70000 0x10000>;
++			label = "uboot_env";
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/kirkwood-linkstation.dtsi b/arch/arm/boot/dts/kirkwood-linkstation.dtsi
+new file mode 120000
+index 0000000..5324292
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-linkstation.dtsi
+@@ -0,0 +1 @@
++marvell/kirkwood-linkstation.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-lschlv2.dts b/arch/arm/boot/dts/kirkwood-lschlv2.dts
+new file mode 120000
+index 0000000..3da0f68
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-lschlv2.dts
+@@ -0,0 +1 @@
++marvell/kirkwood-lschlv2.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-lsxhl.dts b/arch/arm/boot/dts/kirkwood-lsxhl.dts
+new file mode 120000
+index 0000000..5c62673
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-lsxhl.dts
+@@ -0,0 +1 @@
++marvell/kirkwood-lsxhl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-lsxl.dtsi b/arch/arm/boot/dts/kirkwood-lsxl.dtsi
+new file mode 120000
+index 0000000..1e2360c
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-lsxl.dtsi
+@@ -0,0 +1 @@
++marvell/kirkwood-lsxl.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/kirkwood-terastation-tsxel.dts b/arch/arm/boot/dts/kirkwood-terastation-tsxel.dts
+new file mode 100644
+index 0000000..0e51ac7
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood-terastation-tsxel.dts
+@@ -0,0 +1,257 @@
++/*
++ */
++
++/dts-v1/;
++#include "kirkwood.dtsi"
++#include "kirkwood-6281.dtsi"
++
++/ {
++	model = "Buffalo Terastation TS-XEL";
++	compatible = "buffalo,tsxel", "marvell,kirkwood-88f6281", "marvell,kirkwood";
++
++//	chosen
++//	{
++//		bootargs = "console=ttyS0,115200n8 earlyprintk";
++//		stdout-path = &uart0;
++//	};
++
++	memory
++	{
++		device_type = "memory"; 
++		reg = <0x00000000 0x10000000>; /* 256 MB */
++	};
++	
++	ocp@f1000000
++	{
++		pinctrl: pin-controller@10000
++		{
++			hdd1_present: hdd1-present
++			{
++				marvell,pins = "mpp39";
++				marvell,function = "gpio";
++			};
++
++			hdd2_present: hdd2-present
++			{
++				marvell,pins = "mpp40";
++				marvell,function = "gpio";
++			};
++
++			hdd3_present: hdd3-present
++			{
++				marvell,pins = "mpp41";
++				marvell,function = "gpio";
++			};
++
++			hdd4_present: hdd4-present
++			{
++				marvell,pins = "mpp42";
++				marvell,function = "gpio";
++			};
++
++			rear_switch: rear-switch
++			{
++				marvell,pins = "mpp43";
++				marvell,function = "gpio";
++			};
++
++			pmx_usb_vbus1: pmx-usb-vbus1
++			{
++				marvell,pins = "mpp47";
++				marvell,function = "gpio";
++			};
++
++			pmx_usb_vbus2: pmx-usb-vbus2
++			{
++				marvell,pins = "mpp48";
++				marvell,function = "gpio";
++			};
++		};
++				
++		serial@12000
++		{
++			status = "okay";
++		};
++
++		serial@12100
++		{
++			status = "okay";
++		};
++
++		sata@80000
++		{
++			nr-ports = <1>;
++			status = "okay";
++		};
++	};
++
++	restart_poweroff
++	{
++		compatible = "restart-poweroff";
++	};
++
++	regulators
++	{
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-0 = <&pmx_usb_vbus1 &pmx_usb_vbus2>;
++		pinctrl-names = "default";
++
++		usb_power1: regulator@1
++		{
++			compatible = "regulator-fixed";
++			reg = <1>;
++			regulator-name = "USB Power";
++			regulator-min-microvolt = <5000000>;
++			regulator-max-microvolt = <5000000>;
++			enable-active-high;
++			regulator-always-on;
++			regulator-boot-on;
++			gpio = <&gpio1 15 GPIO_ACTIVE_HIGH>;
++		};
++
++		usb_power2: regulator@2
++		{
++			compatible = "regulator-fixed";
++			reg = <2>;
++			regulator-name = "USB Power";
++			regulator-min-microvolt = <5000000>;
++			regulator-max-microvolt = <5000000>;
++			enable-active-high;
++			regulator-always-on;
++			regulator-boot-on;
++			gpio = <&gpio1 16 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++	gpio-keys
++	{
++		compatible = "gpio-keys";
++		pinctrl-0 = <&hdd1_present &hdd2_present &hdd3_present &hdd4_present &rear_switch>;
++		pinctrl-names = "default";
++
++		hdd1-present
++		{
++			label = "Hard Disk 1 Present";
++			linux,code = <KEY_PROG1>;
++			gpios = <&gpio1 7 GPIO_ACTIVE_LOW>;
++		};
++
++		hdd2-present
++		{
++			label = "Hard Disk 2 Present";
++			linux,code = <KEY_PROG2>;
++			gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
++		};
++
++		hdd3-present
++		{
++			label = "Hard Disk 3 Present";
++			linux,code = <KEY_PROG3>;
++			gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
++		};
++
++		hdd4-present
++		{
++			label = "Hard Disk 4 Present";
++			linux,code = <KEY_PROG4>;
++			gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
++		};
++
++		rear-switch
++		{
++			label = "Rear Switch";
++			linux,code = <KEY_ESC>;
++			gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
++		};
++	};
++};
++
++&mdio 
++{
++	status = "okay";
++	ethphy0: ethernet-phy@0 
++	{
++		device_type = "ethernet-phy";
++		reg = <0>;
++	};
++
++	ethphy1: ethernet-phy@8
++	{
++		device_type = "ethernet-phy";
++		reg = <8>;
++	};
++};
++
++&eth0 
++{
++	status = "okay";
++	ethernet0-port@0 
++	{
++		phy-handle = <&ethphy0>;
++	};
++};
++
++&eth1
++{
++	status = "okay";
++	ethernet1-port@0
++	{
++		phy-handle = <&ethphy1>;
++	};
++};
++
++&nand
++{
++	status = "okay";
++
++	partition@0
++	{
++		label = "boot";
++		reg = <0x0000000 0x1000000>;
++		read-only;
++	};
++
++	partition@1000000
++	{
++		label = "rootfs";
++		reg = <0x1000000 0xFE800000>;
++		read-only;
++	};
++
++	partition@FF800000
++	{
++		label = "reserve";
++		reg = <0xFF800000 0x00800000>;
++		read-only;
++	};
++};
++
++&spi0
++{
++	status = "okay";
++
++	spi-flash@0
++	{
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "st,m25p40", "jedec,spi-nor";
++		reg = <0>;
++		spi-max-frequency = <25000000>;
++
++		partition@0
++		{
++			label = "u-boot";
++			reg = <0x00000 0x70000>;
++			read-only;
++		};
++
++		partition@70000
++		{
++			label = "u-boot-env";
++			reg = <0x70000 0x10000>;
++			read-only;
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/kirkwood.dtsi b/arch/arm/boot/dts/kirkwood.dtsi
+new file mode 120000
+index 0000000..f3504b4
+--- /dev/null
++++ b/arch/arm/boot/dts/kirkwood.dtsi
+@@ -0,0 +1 @@
++marvell/kirkwood.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/mvebu-linkstation-fan.dtsi b/arch/arm/boot/dts/mvebu-linkstation-fan.dtsi
+new file mode 120000
+index 0000000..7916f10
+--- /dev/null
++++ b/arch/arm/boot/dts/mvebu-linkstation-fan.dtsi
+@@ -0,0 +1 @@
++marvell/mvebu-linkstation-fan.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/mvebu-linkstation-gpio-simple.dtsi b/arch/arm/boot/dts/mvebu-linkstation-gpio-simple.dtsi
+new file mode 120000
+index 0000000..d90bd1f
+--- /dev/null
++++ b/arch/arm/boot/dts/mvebu-linkstation-gpio-simple.dtsi
+@@ -0,0 +1 @@
++marvell/mvebu-linkstation-gpio-simple.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/orion5x-linkstation-lschl.dts b/arch/arm/boot/dts/orion5x-linkstation-lschl.dts
+new file mode 120000
+index 0000000..d849250
+--- /dev/null
++++ b/arch/arm/boot/dts/orion5x-linkstation-lschl.dts
+@@ -0,0 +1 @@
++marvell/orion5x-linkstation-lschl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/orion5x-linkstation-lsgl.dts b/arch/arm/boot/dts/orion5x-linkstation-lsgl.dts
+new file mode 120000
+index 0000000..85bf3f5
+--- /dev/null
++++ b/arch/arm/boot/dts/orion5x-linkstation-lsgl.dts
+@@ -0,0 +1 @@
++marvell/orion5x-linkstation-lsgl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/orion5x-linkstation-lsql.dts b/arch/arm/boot/dts/orion5x-linkstation-lsql.dts
+new file mode 100644
+index 0000000..08b9ff6
+--- /dev/null
++++ b/arch/arm/boot/dts/orion5x-linkstation-lsql.dts
+@@ -0,0 +1,305 @@
++/*
++ * Copyright (C) 2014 Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
++ *
++ * This file is licensed under the terms of the GNU General Public
++ * License version 2. This program is licensed "as is" without any
++ * warranty of any kind, whether express or implied.
++ */
++
++/dts-v1/;
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/interrupt-controller/irq.h>
++#include "orion5x-mv88f5182.dtsi"
++
++/ {
++	model = "Buffalo Linkstation LS-QL";
++	compatible = "marvell,orion5x-88f5182", "marvell,orion5x";
++
++	memory
++	{
++		reg = <0x00000000 0x8000000>; /* 128 MB */
++	};
++
++	chosen
++	{
++		bootargs = "console=ttyS0,115200n8 earlyprintk";
++		stdout-path = &uart0;
++	};
++
++	soc
++	{
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000>,
++			 <MBUS_ID(0x09, 0x00) 0 0xf2200000 0x800>,
++			 <MBUS_ID(0x01, 0x0f) 0 0xf4000000 0x80000>,
++			 <MBUS_ID(0x01, 0x1d) 0 0xfc000000 0x1000000>;
++	};
++
++	gpio-leds
++	{
++		compatible = "gpio-leds";
++		pinctrl-0 = <&pmx_led_function_blue &pmx_led_power_red &pmx_led_power_amber>;
++		pinctrl-names = "default";
++
++		blue-power-led
++                {
++                        label = "linkstation:power-blue";
++                        gpios = <&gpio0 0 GPIO_ACTIVE_LOW>;
++                        default-state = "on";
++                };
++
++		power-red
++		{
++			label = "linkstation:power-red";
++			gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
++		};
++
++		power-amber
++		{
++			label = "linkstation:power-amber";
++			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
++		};
++
++		blue-function-led
++		{
++			label = "linkstation:function-blue";
++			gpios = <&gpio0 18 GPIO_ACTIVE_LOW>;
++		};
++
++	};
++
++	gpio_fan
++	{
++		compatible = "gpio-fan";
++		pinctrl-0 = <&pmx_fan_low &pmx_fan_high &pmx_fan_lock>;
++		pinctrl-names = "default";
++
++		gpio-fan,speed-map =
++			<0	      3
++			1500    2
++			3250    1
++			5000    0>;
++
++		gpios = <&gpio0 14 GPIO_ACTIVE_HIGH
++			 &gpio0 17 GPIO_ACTIVE_HIGH>;
++
++		alarm-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
++	};
++
++
++	//although binding for the gpio controller lists 32 pins,
++	//The orion-pinctrl driver only has entries for MPP0-MPP19
++	//the auto switch can be observed changing the value of GPIO22
++	//from userspace but the gpio-key driver sees it as invalid.
++	//orion-pinctrl should probably be patched to correct this.
++	gpio-keys
++	{
++		compatible = "gpio-keys";
++		pinctrl-0 = <&pmx_function_button &pmx_power_button>; // &pmx_auto_switch>;
++		pinctrl-names = "default";
++		#address-cells = <1>;
++		#size-cells = <0>;
++	  
++		function-button
++		{
++			label = "Function Button";
++			linux,code = <KEY_OPTION>;
++			gpios = <&gpio0 7 GPIO_ACTIVE_LOW>;
++		};
++
++		power-button
++		{
++			label = "Power Button";
++			linux,code = <KEY_PROG1>;
++			gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
++		};
++
++/*
++		autopower
++		{
++			label = "Power-auto Switch";
++			linux,input-type = <EV_SW>;
++			linux,code = <KEY_ESC>; 
++			gpios = <&gpio0 22 GPIO_ACTIVE_LOW>;
++		};
++*/
++	};
++
++	regulators
++	{
++                compatible = "simple-bus";
++                #address-cells = <1>;
++                #size-cells = <0>;
++                pinctrl-0 = <&pmx_power_usb>;
++                pinctrl-names = "default";
++
++                usb_power: regulator@0
++		{
++                        compatible = "regulator-fixed";
++                        reg = <0>;
++                        regulator-name = "USB Power";
++                        regulator-min-microvolt = <5000000>;
++                        regulator-max-microvolt = <5000000>;
++                        enable-active-high;
++                        regulator-always-on;
++                        regulator-boot-on;
++			gpio = <&gpio0 9 GPIO_ACTIVE_HIGH>;
++                };
++        };
++
++	restart_poweroff
++	{
++                compatible = "restart-poweroff";
++        };
++};
++
++
++&devbus_bootcs {
++	status = "okay";
++	devbus,keep-config;
++
++	flash@0 {
++		compatible = "jedec-flash";
++		reg = <0 0x40000>;
++		bank-width = <1>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			header@0 {
++				reg = <0 0x30000>;
++				read-only;
++			};
++
++			uboot@30000 {
++				reg = <0x30000 0xF000>;
++				read-only;
++			};
++
++			uboot_env@3F000 {
++				reg = <0x3F000 0x1000>;
++			};
++		};
++	};
++};
++
++&ehci0 {
++	status = "okay";
++};
++
++&ehci1 {
++	status = "okay";
++};
++
++&eth {
++	status = "okay";
++
++	ethernet-port@0 {
++		phy-handle = <&ethphy>;
++	};
++};
++
++&i2c {
++	status = "okay";
++	clock-frequency = <100000>;
++	#address-cells = <1>;
++
++	rs5c372: rs5c372@32
++	{
++		compatible = "ricoh,rs5c372a";
++		reg = <0x32>;
++	};
++
++};
++
++&mdio {
++	status = "okay";
++
++	ethphy: ethernet-phy {
++		reg = <8>;
++	};
++};
++
++&pinctrl
++{
++	pmx_led_power_blue: pmx-led-power-blue
++        {
++                marvell,pins = "mpp0";
++                marvell,function = "gpio";
++        };
++
++	pmx_led_power_red: pmx_led_power_red
++	{
++		marvell,pins = "mpp2";
++		marvell,function = "gpio";
++	};
++
++	pmx_led_power_amber: pmx-led-power-amber 
++	{
++		marvell,pins = "mpp3";
++		marvell,function = "gpio";
++	};
++
++	pmx_fan_lock: pmx-fan-lock
++	{
++		marvell,function = "gpio";
++		marvell,pins = "mpp6";
++	};
++
++	pmx_function_button: pmx-function-button
++	{
++		marvell,pins = "mpp7";
++		marvell,function = "gpio";
++	};
++
++	pmx_power_usb: pmx-power-usb
++	{
++		marvell,pins = "mpp9";
++                marvell,function = "gpio";
++        };
++
++	pmx_power_button: pmx-power-button
++	{
++		marvell,pins = "mpp10";
++		marvell,function = "gpio";
++	};
++
++	pmx_fan_low: pmx-fan-low
++	{
++		marvell,function = "gpio";
++		marvell,pins = "mpp14";		
++	};
++
++	pmx_fan_high: pmx-fan-high
++	{
++		marvell,function = "gpio";
++		marvell,pins = "mpp17";
++	};
++
++	pmx_led_function_blue: pmx-led-function-blue
++        {
++                marvell,pins = "mpp18";
++                marvell,function = "gpio";
++        };
++
++	pmx_auto_switch: pmx-auto-switch 
++	{
++		marvell,pins = "mpp22";
++		marvell,function = "gpio";
++	};
++
++};
++
++&sata
++{
++	status = "okay";
++	nr-ports = <1>;
++};
++
++&uart0
++{
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/orion5x-linkstation-lswtgl.dts b/arch/arm/boot/dts/orion5x-linkstation-lswtgl.dts
+new file mode 120000
+index 0000000..62350f8
+--- /dev/null
++++ b/arch/arm/boot/dts/orion5x-linkstation-lswtgl.dts
+@@ -0,0 +1 @@
++marvell/orion5x-linkstation-lswtgl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/orion5x-linkstation.dtsi b/arch/arm/boot/dts/orion5x-linkstation.dtsi
+new file mode 120000
+index 0000000..b7c074f
+--- /dev/null
++++ b/arch/arm/boot/dts/orion5x-linkstation.dtsi
+@@ -0,0 +1 @@
++marvell/orion5x-linkstation.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/orion5x-lswsgl.dts b/arch/arm/boot/dts/orion5x-lswsgl.dts
+new file mode 120000
+index 0000000..2068282
+--- /dev/null
++++ b/arch/arm/boot/dts/orion5x-lswsgl.dts
+@@ -0,0 +1 @@
++marvell/orion5x-lswsgl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/orion5x-mv88f5182.dtsi b/arch/arm/boot/dts/orion5x-mv88f5182.dtsi
+new file mode 120000
+index 0000000..6c0a4fb
+--- /dev/null
++++ b/arch/arm/boot/dts/orion5x-mv88f5182.dtsi
+@@ -0,0 +1 @@
++marvell/orion5x-mv88f5182.dtsi
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/orion5x.dtsi b/arch/arm/boot/dts/orion5x.dtsi
+new file mode 120000
+index 0000000..7b134f2
+--- /dev/null
++++ b/arch/arm/boot/dts/orion5x.dtsi
+@@ -0,0 +1 @@
++marvell/orion5x.dtsi
+\ No newline at end of file

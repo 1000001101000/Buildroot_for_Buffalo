@@ -1,0 +1,38 @@
+diff --git a/arch/arm/boot/dts/mv78100-terastation-tsrxl.dts b/arch/arm/boot/dts/mv78100-terastation-tsrxl.dts
+new file mode 120000
+index 0000000..fdbd534
+--- /dev/null
++++ b/arch/arm/boot/dts/mv78100-terastation-tsrxl.dts
+@@ -0,0 +1 @@
++mv78100-terastation-tsxl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/mv78100-terastation-tswxl.dts b/arch/arm/boot/dts/mv78100-terastation-tswxl.dts
+new file mode 120000
+index 0000000..fdbd534
+--- /dev/null
++++ b/arch/arm/boot/dts/mv78100-terastation-tswxl.dts
+@@ -0,0 +1 @@
++mv78100-terastation-tsxl.dts
+\ No newline at end of file
+diff --git a/arch/arm/boot/dts/mv78100-terastation-tsxl.dts b/arch/arm/boot/dts/mv78100-terastation-tsxl.dts
+new file mode 100644
+index 0000000..28b818b
+--- /dev/null
++++ b/arch/arm/boot/dts/mv78100-terastation-tsxl.dts
+@@ -0,0 +1,5 @@
++/dts-v1/;
++
++/ {
++
++};
+diff --git a/arch/arm/boot/dts/orion5x-terastation-ts2pro.dts b/arch/arm/boot/dts/orion5x-terastation-ts2pro.dts
+new file mode 100644
+index 0000000..28b818b
+--- /dev/null
++++ b/arch/arm/boot/dts/orion5x-terastation-ts2pro.dts
+@@ -0,0 +1,5 @@
++/dts-v1/;
++
++/ {
++
++};
