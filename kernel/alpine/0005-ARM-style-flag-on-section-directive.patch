@@ -34,3 +34,13 @@ index b19626a..81501c3 100644
  
  	/*
  	 * Standard v7 proc info content
+diff --git a/arch/arm/boot/compressed/piggy.xzkern.S b/arch/arm/boot/compressed/piggy.xzkern.S
+index 5703f30..0436c2d 100644
+--- a/arch/arm/boot/compressed/piggy.xzkern.S
++++ b/arch/arm/boot/compressed/piggy.xzkern.S
+@@ -1,4 +1,4 @@
+-	.section .piggydata,#alloc
++	.section .piggydata,"a"
+ 	.globl	input_data
+ input_data:
+ 	.incbin	"arch/arm/boot/compressed/piggy.xzkern"
