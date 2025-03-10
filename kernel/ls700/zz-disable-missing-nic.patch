@@ -1,0 +1,13 @@
+diff --git a/arch/arm64/boot/dts/realtek/rtd16xx/rtd-16xx.dtsi b/arch/arm64/boot/dts/realtek/rtd16xx/rtd-16xx.dtsi
+index cdf788a..2f9b086 100644
+--- a/arch/arm64/boot/dts/realtek/rtd16xx/rtd-16xx.dtsi
++++ b/arch/arm64/boot/dts/realtek/rtd16xx/rtd-16xx.dtsi
+@@ -554,7 +554,7 @@
+ 			"pcie0_phy",
+ 			"pcie0_sgmii_mdio",
+ 			"pcie0_phy_mdio";
+-		status = "okay";
++		status = "disabled";
+ 		phy_0 {
+ 			interrupt-parent = <&mux_intc>;
+ 			interrupts = <60 4>,

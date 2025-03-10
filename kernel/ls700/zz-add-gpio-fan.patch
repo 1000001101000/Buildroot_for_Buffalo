@@ -1,0 +1,49 @@
+diff --git a/arch/arm64/boot/dts/realtek/rtd16xx/rtd-1619-mmnas-megingjord-2GB.dts b/arch/arm64/boot/dts/realtek/rtd16xx/rtd-1619-mmnas-megingjord-2GB.dts
+index 5b7eaab..234206b 100755
+--- a/arch/arm64/boot/dts/realtek/rtd16xx/rtd-1619-mmnas-megingjord-2GB.dts
++++ b/arch/arm64/boot/dts/realtek/rtd16xx/rtd-1619-mmnas-megingjord-2GB.dts
+@@ -327,4 +327,16 @@
+                 status = "disabled";
+         };			
+ 
++	gpio_fan {
++		compatible = "gpio-fan";
++		pinctrl-0 = <&fan_pin1 &fan_pin2 &fan_sensor>;
++		pinctrl-names = "default";
++		gpios = <&rtk_iso_gpio 85 1 1
++			 &rtk_iso_gpio 20 1 1>;
++		gpio-fan,speed-map = <0    3
++				      1850 2
++				      2600 1
++				      3500 0>;
++		alarm-gpios = <&rtk_iso_gpio 47 0 0>;
++	};
+ };
+diff --git a/arch/arm64/boot/dts/realtek/rtd16xx/rtd-16xx-pinctrl.dtsi b/arch/arm64/boot/dts/realtek/rtd16xx/rtd-16xx-pinctrl.dtsi
+index cf95e2d..4c266a2 100644
+--- a/arch/arm64/boot/dts/realtek/rtd16xx/rtd-16xx-pinctrl.dtsi
++++ b/arch/arm64/boot/dts/realtek/rtd16xx/rtd-16xx-pinctrl.dtsi
+@@ -473,6 +473,23 @@
+ 			realtek,function = "qam_agc_if";
+ 		};
+ 
++		fan_pin1: fan_pin1 {
++			realtek,pins = "gpio_20";
++			realtek,function = "gpio";
++			output-low;
++		};
++
++		fan_pin2: fan_pin2 {
++			realtek,pins = "gpio_85";
++			realtek,function = "gpio";
++			output-low;
++		};
++
++		fan_sensor: fan_sensor {
++			realtek,pins = "gpio_47";
++			realtek,function = "gpio";
++		};
++
+ 		/*rtc_pins: rtc_pins {
+ 			realtek,pins = "gpio_25";
+ 			realtek,function = "rtc";
