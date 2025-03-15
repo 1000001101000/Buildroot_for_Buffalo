@@ -629,7 +629,7 @@ gen_appended_uImage()
   cat "$machfile" "$shim" "$kernel" "$dtb" > "$BINARIES_DIR/katkern"
   mkimage -A "$arch" -O linux -T kernel -C "$compress" -a "$addr" -e "$addr" -n buildroot-kernel -d "$BINARIES_DIR/katkern" "$BINARIES_DIR/$output"
   bootfs_copy "$BINARIES_DIR/$output"
-  rm "$BINARIES_DIR/none.dtb" 2>/dev/null
+  rm "$BINARIES_DIR/none.dtb" "$BINARIES_DIR/katkern" "$machfile" 2>/dev/null
 }
 
 generate_initrd_uboot()
