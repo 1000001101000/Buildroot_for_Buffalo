@@ -36,7 +36,7 @@ esac
 uname -m | grep -q armv5
 if [ $? -eq 0 ]; then
   ##nearly all hwmon, check for exceptions later
-  fan_type="gpio"
+  fan_type="hwmon"
 
   ##only one variation of micon, and nothing without one even has ttyS1, just see if something responds
   micro-evtd -q -s 8083 && micon_ver=2 && micon_port="/dev/ttyS1" && shutdown_type="micon" && fan_type="micon"
@@ -68,7 +68,7 @@ if [ $? -eq 0 ]; then ##alpine devs
     fan_type="micon"
   fi
   if [ "$machinetype" = "Marvell Armada 370/XP (Device Tree)" ]; then
-    fan_type="gpio"
+    fan_type="hwmon"
     case $machine in
     "Buffalo Terastation TS1400D"|"Buffalo Terastation TS1400R"|"Buffalo Terastation TS3200D"|"Buffalo Terastation TS3400D"|"Buffalo Terastation TS3400R")
       micon_ver=2
@@ -88,7 +88,7 @@ fi ##end armhf
 
 uname -m | grep -q aarch64
 if [ $? -eq 0 ]; then
-  fan_type="gpio"
+  fan_type="hwmon"
   ##assume some models I haven't looked at also have miconv3
 fi
 

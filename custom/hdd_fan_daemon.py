@@ -10,6 +10,7 @@ import time
 config_file="/etc/micon_fan.conf"
 fan_type=sys.argv[1]
 micon_port=sys.argv[2]
+pwms=sys.argv[2]
 
 ####some function for finding/enabling the relavant pwm devices.
 
@@ -25,9 +26,7 @@ def getHDDtemp():
 
 def setMiconPWM(value):
 	lowmedhigh=int((value+30)//33)
-	##wrap the variations and just take
-	##if mconv2 send whatever value corresponds to %
-	##if hwmon gpio or otherwise should be 0-255, quick divide, easy enough
+	eightbit=int(value*2.55)
 	if (fan_type == "miconv3"):
 		micondev = libmicon.micon_api_v3(micon_port)
 		micondev.send_miconv3("FAN_SET 1 "+ str(value))
@@ -37,6 +36,10 @@ def setMiconPWM(value):
 		micondev = libmicon.micon_api(micon_port)
 		micondev.send_write_cmd(1,libmicon.fan_set_speed,bytearray([lowmedhigh]))
 		micondev.port.close()
+	if (fan_type == "hwmon"):
+		for pwm in pwms.split(","):
+			with open(pwm, 'w') as pwmout:
+				pwmout.write(str(eightbit))
 
 config = configparser.ConfigParser()
 if os.path.exists(config_file):
