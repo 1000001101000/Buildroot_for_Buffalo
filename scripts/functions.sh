@@ -179,31 +179,33 @@ local importlibs=""
 local tmppath=""
 for x in $importbins
 do
-  tmppath=`find "$TARGET_DIR"{/usr/,/}{sbin,bin}/ -name "$x"`
+  tmppath=`find "$TARGET_DIR"{/usr/,/}{sbin,bin}/ -name "$x" -print -quit`
   [ -z "$tmppath" ] && continue
   cp "$tmppath" "$workdir/bin/$x"
   chmod +x "$workdir/bin/$x"
-  importlibs+=`readelf -d "$tmppath" | grep 'NEEDED' | cut -d[ -f2 | cut -d] -f1`
+  importlibs+="`readelf -d "$tmppath" | grep 'NEEDED' | cut -d[ -f2 | cut -d] -f1`"
   importlibs+=" "
 done
-importlibs="$(echo $importlibs | sort -u)"
+importlibs="`echo "$importlibs" | xargs -n1 echo | sort -u`"
 
 local recurse=1
 while [ $recurse -eq 1 ]
 do
-recurse=0
-for lib in $importlibs
-do
-  if [ ! -e "$workdir/lib/$lib" ]; then
-    find "$TARGET_DIR" -name "$lib" -exec cp {} "$workdir/lib/$lib" \;
-    if [ $? -eq 0 ]; then
-      recurse=1
-      importlibs="$importlibs $(readelf -d "$workdir/lib/$lib" | grep 'NEEDED' | cut -d[ -f2 | cut -d] -f1)"
+  recurse=0
+  for lib in $importlibs
+  do
+    tmplib="$workdir/lib/$lib"
+    if [ ! -e "$tmplib" ]; then
+      find "$TARGET_DIR" -name "$lib" -exec cp {} "$tmplib" \; -quit
+      if [ $? -eq 0 ]; then
+        recurse=1
+        importlibs+=" "
+        importlibs+=`readelf -d "$tmplib" | grep 'NEEDED' | cut -d[ -f2 | cut -d] -f1`
+      fi
     fi
-  fi
+  done
+  importlibs="`echo "$importlibs" | xargs -n1 echo | sort -u`"
 done
-done
-
 ln -s "/lib" "$workdir/lib64"
 
 #create symlinks for some needed commands
