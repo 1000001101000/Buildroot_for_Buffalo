@@ -66,6 +66,33 @@ if [ $? -eq 0 ]; then ##alpine devs
     micon_ver=3
     micon_port="/dev/ttyUSB0"
     fan_type="micon"
+    ###parse fw_printenv params from cmdline
+    cmdline="$(cat /proc/cmdline)"
+
+    cmd2entry()
+    {
+      local dev="$(echo $1 | cut -d, -f4)"
+      local offset="$(echo $dev | cut -d@ -f1)"
+      local dev="$(echo $dev | cut -d@ -f2)"
+      echo "/dev/$dev" "$(echo $1 | awk -F, '{print $1" "$2" "$2" "$3}')"
+    }
+
+    primary=""
+    secondary=""
+
+    for x in $cmdline
+    do
+      key="$(echo $x | cut -d= -f1)"
+      if [ "$key" == "ubootenv" ]; then
+        primary="$(echo $x | cut -d= -f2)"
+      fi
+      if [ "$key" == "ubootenv_redund" ]; then
+        secondary="$(echo $x | cut -d= -f2)"
+      fi
+    done
+
+    cmd2entry $primary   > /etc/fw_env.config
+    cmd2entry $secondary >>/etc/fw_env.config
   fi
   if [ "$machinetype" = "Marvell Armada 370/XP (Device Tree)" ]; then
     fan_type="hwmon"
