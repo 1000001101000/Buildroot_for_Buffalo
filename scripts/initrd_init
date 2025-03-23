@@ -1,5 +1,6 @@
 #!/bin/busybox sh
 # shellcheck shell=dash
+# shellcheck disable=SC2006
 
 lcd_put()
 {
@@ -8,10 +9,10 @@ lcd_put()
   line1="$(echo "$line1" | head -c 16)"
   line2="$(echo "$line2" | head -c 16)"
   if [ "$micon_ver" = "3" ]; then
-    /usr/bin/micro-evtd -q -p "$micon_port" -s3 "LCD_PUTS 0 $line1","LCD_PUTS 1 $line2"
+    micro-evtd -q -p "$micon_port" -s3 "LCD_PUTS 0 $line1","LCD_PUTS 1 $line2"
   fi
   if [ "$micon_ver" = "2" ]; then
-    /usr/bin/micro-evtd -q -p "$micon_port" -s 2090$(printf "$line1$line2" | xxd -p -c80),0025,013220,013aff
+    micro-evtd -q -p "$micon_port" -s 2090$(printf "$line1$line2" | xxd -p -c80),0025,013220,013aff
   fi
 }
 
@@ -31,25 +32,25 @@ lcd_color()
     [ "$variant" = "orion5x" ] && return
     ## set LCD color green
     color=$((red+green*2+blue*4))
-    /usr/bin/micro-evtd -q -p "$micon_port" -s 02500007,0251000$color
+    micro-evtd -q -p "$micon_port" -s 02500007,0251000$color
   fi
   if [ "$micon_ver" = "3" ]; then
     if [ $red -eq 1 ]; then red="LED_ON"; else red="LED_OFF"; fi
     if [ $green -eq 1 ]; then green="LED_ON"; else green="LED_OFF"; fi
     if [ $blue -eq 1 ]; then blue="LED_ON"; else blue="LED_OFF"; fi
-    /usr/bin/micro-evtd -p "$micon_port" -s3 "$red 3","$green 4","$blue 5"
+    micro-evtd -p "$micon_port" -s3 "$red 3","$green 4","$blue 5"
   fi
 }
 
-/bin/mount -t proc none /proc
-/bin/mount -t sysfs none /sys
-/bin/mount -t devtmpfs none /dev
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devtmpfs none /dev
 
 machinetype="$(sed -n '/Hardware/ {s/^Hardware\s*:\s//;p}' /proc/cpuinfo)"
 
 ##load any modules that made it to the initrd
 if [ -d "/lib/modules/$(uname -r)/" ]; then
-  find /lib/modules/$(uname -r)/ -name *.ko | xargs -n1 insmod
+  find /lib/modules/"$(uname -r)"/ -name "*.ko" | xargs -n1 insmod
   sleep 5 ##give new devices a moment to be detected
 fi
 
@@ -81,19 +82,19 @@ fi
 ##some variants don't necessarily have a micon
 ##for now try accessing and see if it responds
 if [ "$micon_ver" = "2" ]; then
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 0003 2>/dev/null || micon_ver=""
+  micro-evtd -q -p "$micon_port" -s 0003 2>/dev/null || micon_ver=""
 fi
 
 if [ "$micon_ver" = "2" ]; then
   ##enable serial console on Terastation II Pro, Terastation III, Terastation 3000... probably others
   ##it actually toggles it, on some devices there doesn't seem to be a way to determine the initial state.
   ##suppose we could toggle on and off waiting for keystroke
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 0003,000f,000f
+  micro-evtd -q -p "$micon_port" -s 0003,000f,000f
   echo "console enabled attempted" > /dev/console
   ##clear LEDs and set power LED
-  /usr/bin/micro-evtd -q -p "$micon_port" -s 0250090f96,02520000ac,02510d00a0
+  micro-evtd -q -p "$micon_port" -s 0250090f96,02520000ac,02510d00a0
   ##grab starting button value, if it changes maybe they want a shell?
-  button_val="$(/usr/bin/micro-evtd -q -p "$micon_port" -s 8036)"
+  button_val="$(micro-evtd -q -p "$micon_port" -s 8036)"
 fi
 
 lcd_put " Custom InitRD  " "                "
@@ -119,12 +120,12 @@ if [ "$micon_ver" = "2" ]; then
   if [ "$variant" = "atom" ]; then
     gpiobase="$(cat "$(grep -l it87 /sys/class/gpio/gpiochip*/label | xargs dirname)/base")"
     echo $((gpiobase+20)) > /sys/class/gpio/export
-    gpio="$(ls /sys/class/gpio/ | grep it87)"
+    gpio="$(ls -d /sys/class/gpio/it87_gp*)"
     x=0
-    while [ $x -lt 500 ]; do
-      val=$(cat /sys/class/gpio/$gpio/value)
+    while [ "$x" -lt 500 ]; do
+      val=`cat "$gpio"/value`
       ##default 1
-      if [ $val -eq 0 ]; then
+      if [ "$val" -eq 0 ]; then
         FORCESHELL=1
         echo "force via it87 gpio"
         break
@@ -136,7 +137,7 @@ if [ "$micon_ver" = "2" ]; then
     ##is function always the same bitfield-wise? if not lots of complex logic, or just look for any button?
     while [ $((x)) -lt 500 ]; do
       break
-      button_val2="$(/usr/bin/micro-evtd -q -p "$micon_port" -s 8036)"
+      button_val2=`micro-evtd -q -p "$micon_port" -s 8036`
       ##xor out desired button?
       if [ "$button_val" != "$button_val2" ]; then
         FORCESHELL=1
@@ -164,20 +165,17 @@ fi
 
 echo "custom initrd, looking for rootfs"
 
-##look for rootfs device with matching UUID
-ROOTDEV="$(blkid -U "$rootfsID")"
-BOOTDEV="$(blkid -U "$bootID")"
+##assuming for now that if cmdline says NAND/eMMC boot that's what we want.
+##followed by the disk/fs this initrd was originally generated with.
+##lastly try anything with "BRROOT" partlabel
+##drop to a shell if nothing suitable found
 
-
-####usually we have a backup method to boot sata/usb
-####if we didn't we'd want some method to trigger it
 emmcboot=0
 grep -q "boot_device_type=eMMC" /proc/cmdline && emmcboot=1
-[ "$emmcboot" = "1" ] && ROOTDEV="$(blkid -t PARTLABEL="BRROOT" -o device /dev/mmc*)" && BOOTDEV=""
-
+[ "$emmcboot" = "1" ] && ROOTDEV=`blkid -t PARTLABEL="BRROOT" -o device /dev/mmc*` && BOOTDEV=""
 
 nandboot=0
-for x in "nandboot" "rootfstype=ubifs"
+for x in "nandboot" "rootfstype=ubifs" "bootfrom=ubi"
 do
   grep -q "$x" /proc/cmdline && nandboot=1
 done
@@ -189,31 +187,26 @@ if [ $nandboot -eq 1 ]; then
   ##in that case we can probably just exit.
   ##eventually we can test all relavant models and make any driver/dtb changes to ensure that.
   ##we can also scan all nand partitions looking for something we can boot.
-
+  match=0
   for x in `grep mtd /proc/mtd | cut -d: -f1`
   do
-    [ `dd if=/dev/$x bs=4 count=1 2>/dev/null` = "UBI#" ] || continue
-    ubiattach -p /dev/$x -d 9
-    tmpdev="/dev/ubi9_?"
-    mount -t ubifs -o ro $tmpdev /mnt/ubi
-    [ -f "/mnt/ubi/linuxrc" ] && grep -q Buildroot "/mnt/ubi/etc/os-release" && ROOTDEV="$tmpdev" && BOOTDEV=""
+    [ "`dd if=/dev/"$x" bs=4 count=1 2>/dev/null`" = "UBI#" ] || continue
+    echo "ubifs detected on $x, scanning for OS"
+    ubiattach -p /dev/"$x" -d 9
+    tmpdev="`ls /dev/ubi9_?`"
+    mount -t ubifs -o ro "$tmpdev" /mnt/ubi
+    grep -q Buildroot "/mnt/ubi/etc/os-release" 2>/dev/null && match=1
     umount /mnt/ubi
-    [ -n "$ROOTDEV" ] && break
+    [ "$match" -eq 1 ] && ROOTDEV="$tmpdev" && BOOTDEV="" && break
+    ubidetach -p /dev/"$x"
   done
-#    if [ -e "/dev/mtd3" ]; then
-#      ubiattach -m 3 -d 1
-#      ubiattach -m 2 -d 0
-#      BOOTDEV=`ls /dev/ubi0_? | head -n1`
-#    else
-#      ubiattach -m 2 -d 1
-#      BOOTDEV=""
-#    fi
-#    ROOTDEV=`ls /dev/ubi1_? | head -n1`
 fi
 
+##look for rootfs device with matching UUID from initrd creation
+[ -z "$ROOTDEV" ] && ROOTDEV=`blkid -U "$rootfsID"` && BOOTDEV=`blkid -U "$bootID"`
 
 ##if root was not found do a more intrusive search
-if [ "$ROOTDEV" = "" ]; then
+if [ -z "$ROOTDEV" ]; then
 
   ##we might still be waiting for some devices to show up, wait a few sec just in case.
   sleep 10
@@ -221,17 +214,17 @@ if [ "$ROOTDEV" = "" ]; then
   ##mdadm autostart doesn't seem to work even with metadata 0.90
   ##for now start any arrays present and try again.
   #if [ "$micon_ver" = "3" ]; then
-  #  /usr/bin/micro-evtd -p "$micon_port" -s3 "LED_ON 3","LCD_PUTS 1 Scanning MDADM"
+  #  micro-evtd -p "$micon_port" -s3 "LED_ON 3","LCD_PUTS 1 Scanning MDADM"
   #fi
   echo "failed to find rootfs, trying mdadm"
   echo ""
   mkdir -p /run/mdadm
-  /sbin/mdadm --detail --scan 2>&1
+  mdadm --detail --scan 2>&1
   mdadm --assemble --scan
-  /sbin/mdadm --detail --scan 2>&1
+  mdadm --detail --scan 2>&1
 
-  BOOTDEV="$(blkid -U "$bootID")"
-  ROOTDEV="$(blkid -U "$rootfsID")"
+  BOOTDEV=`blkid -U "$bootID"`
+  ROOTDEV=`blkid -U "$rootfsID"`
 
   if [ "$ROOTDEV" = "" ]; then
     echo "failed to find rootfs by UUID, trying by PARTLABEL"
@@ -248,7 +241,7 @@ if [ "$ROOTDEV" = "" ] || [ $FORCESHELL -eq 1 ]; then
   echo "dropping to a shell"
   echo ""
   echo "mount your rootfs on /mnt/root then type 'exit' to continue boot"
-  /bin/getty -n -l /bin/sh -t 300 -L console 0 vt100
+  getty -n -l /bin/sh -t 300 -L console 0 vt100
 else
   RTYPE="$(blkid -s TYPE -o value "$ROOTDEV")"
   BTYPE="$(blkid -s TYPE -o value "$BOOTDEV")"

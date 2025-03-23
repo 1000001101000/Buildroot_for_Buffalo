@@ -152,7 +152,7 @@ generate_initrd()
 {
 local arch="$(echo $MACHTYPE | cut -d\- -f1)"
 
-local importbins="bin/busybox sbin/blkid sbin/mdadm usr/bin/micro-evtd bin/lsblk usr/bin/timeout usr/sbin/ubiattach"
+local importbins="busybox blkid mdadm micro-evtd lsblk timeout ubiattach ubidetach"
 local workdir="$BINARIES_DIR/initrdtmp"
 
 ##cleanup previous run if needed
@@ -175,17 +175,20 @@ echo "$bootID" > "$workdir/bootUUID"
 echo "$variant" > "$workdir/variant"
 
 #pull in busybox and any needed libs from the rootfs.
-importlibs=""
+local importlibs=""
+local tmppath=""
 for x in $importbins
 do
-  if [ ! -e "$TARGET_DIR/$x" ]; then continue; fi
-  cp "$TARGET_DIR/$x" "$workdir/$x"
-  chmod +x "$workdir/$x"
-  importlibs="$importlibs $(readelf -d "$TARGET_DIR/$x" | grep 'NEEDED' | cut -d[ -f2 | cut -d] -f1)"
+  tmppath=`find "$TARGET_DIR"{/usr/,/}{sbin,bin}/ -name "$x"`
+  [ -z "$tmppath" ] && continue
+  cp "$tmppath" "$workdir/bin/$x"
+  chmod +x "$workdir/bin/$x"
+  importlibs+=`readelf -d "$tmppath" | grep 'NEEDED' | cut -d[ -f2 | cut -d] -f1`
+  importlibs+=" "
 done
 importlibs="$(echo $importlibs | sort -u)"
 
-recurse=1
+local recurse=1
 while [ $recurse -eq 1 ]
 do
 recurse=0
