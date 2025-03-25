@@ -1,0 +1,19 @@
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index efe38eb..1723f57 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -39,3 +39,14 @@ subdir-y += unisoc
+ subdir-y += vt8500
+ subdir-y += xen
+ subdir-y += xilinx
++
++dtb-y += \
++	armada-370-linkstation-ls210d.dtb \
++	armada-370-linkstation-ls220d.dtb \
++	armada-370-linkstation-ls410d.dtb \
++	armada-370-linkstation-ls420d.dtb \
++	armada-370-linkstation-ls421d.dtb \
++	armada-370-linkstation-ls441d.dtb \
++	armada-370-terastation-ts1200d.dtb \
++	armada-370-terastation-ts1400d.dtb \
++	armada-370-terastation-ts1400r.dtb \

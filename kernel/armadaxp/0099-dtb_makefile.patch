@@ -1,0 +1,13 @@
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index efe38eb..bee2812 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -39,3 +39,8 @@ subdir-y += unisoc
+ subdir-y += vt8500
+ subdir-y += xen
+ subdir-y += xilinx
++
++dtb-y += \
++	armada-xp-terastation-ts3200d.dtb \
++	armada-xp-terastation-ts3400d.dtb \
++	armada-xp-terastation-ts3400r.dtb \

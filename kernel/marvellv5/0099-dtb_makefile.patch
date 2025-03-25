@@ -1,0 +1,28 @@
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index efe38eb..f6df485 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -39,3 +39,23 @@ subdir-y += unisoc
+ subdir-y += vt8500
+ subdir-y += xen
+ subdir-y += xilinx
++
++dtb-y += \
++	kirkwood-linkstation-lsqvl.dtb \
++	kirkwood-linkstation-lsvl.dtb \
++	kirkwood-linkstation-lswsxl.dtb \
++	kirkwood-linkstation-lswvl.dtb \
++	kirkwood-linkstation-lswxl.dtb \
++	kirkwood-linkstation-lsxl.dtb \
++	kirkwood-lschlv2.dtb \
++	kirkwood-lsxhl.dtb \
++	kirkwood-terastation-tsxel.dtb \
++	mv78100-terastation-tsrxl.dtb \
++	mv78100-terastation-tswxl.dtb \
++	mv78100-terastation-tsxl.dtb \
++	orion5x-linkstation-lschl.dtb \
++	orion5x-linkstation-lsgl.dtb \
++	orion5x-linkstation-lsql.dtb \
++	orion5x-linkstation-lswtgl.dtb \
++	orion5x-lswsgl.dtb \
++	orion5x-terastation-ts2pro.dtb \
