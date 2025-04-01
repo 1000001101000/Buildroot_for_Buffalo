@@ -1,8 +1,13 @@
+#!/bin/bash
+# shellcheck disable=SC2006
 
 datesuff="$(date +%Y%m%d%H%M)"
 
 custom_dir="$CONFIG_DIR/../custom"
 bootdir="$BINARIES_DIR/boottmp"
+moddir="$BINARIES_DIR/modules/"
+
+mkdir "$moddir" 2>/dev/null
 
 loadvars="BR2_LINUX_KERNEL_IMAGEGZ BR2_LINUX_KERNEL_INTREE_DTS_NAME"
 loadvars+=" BR2_ARM_EABI BR2_ARM_EABIHF BR2_x86_64 BR2_aarch64"
@@ -19,14 +24,14 @@ done
 [ "$BR2_x86_64" = "y" ] && ARCH_TYPE="amd64"
 [ "$BR2_aarch64" = "y" ] && ARCH_TYPE="arm64"
 
-BR2_LINUX_KERNEL_INTREE_DTS_NAME=`basename $BR2_LINUX_KERNEL_INTREE_DTS_NAME 2>/dev/null`
-dtb_prefix=`echo $BR2_LINUX_KERNEL_INTREE_DTS_NAME | cut -d\- -f1`
+BR2_LINUX_KERNEL_INTREE_DTS_NAME=`basename "$BR2_LINUX_KERNEL_INTREE_DTS_NAME" 2>/dev/null`
+dtb_prefix=`echo "$BR2_LINUX_KERNEL_INTREE_DTS_NAME" | cut -d- -f1`
 
 bootimg="$BINARIES_DIR/boot.img"
 diskimg="$BINARIES_DIR/disk.img"
 
 if [ "$bootfs_type" = "fat32" ]; then
-  bootID="$(uuidgen | cut -d\- -f1)"
+  bootID=`uuidgen | cut -d- -f1`
   bootID="${bootID^^}"
   bootIDnum="0x$bootID"
   bootID="${bootID:0:4}-${bootID:4:4}"
@@ -41,12 +46,13 @@ fi
 rootfsID="$(blkid -o value -s UUID "$rootimg")"
 rootpartID="$(blkid -o value -s UUID "$rootimg")"
 
-kver="$(ls $BUILD_DIR | grep -e ^linux-[1-9] | sed 's/linux-//g')"
+kver=`ls -d "$BUILD_DIR"/linux-[0-9]*.[0-9]*.[0-9]* | sed 's/^.*linux-//g'`
+#kver="$(ls $BUILD_DIR | grep -e ^linux-[1-9] | sed 's/linux-//g')"
 kernel_dir="$BUILD_DIR/linux-$kver"
 kshort=$((`echo "$kver" | cut -d. -f1`))
 
 eval "$(grep ^CONFIG_LOCALVERSION= "$kernel_dir/.config")"
-variant=`echo $CONFIG_LOCALVERSION | cut -d- -f2`
+variant=`echo "$CONFIG_LOCALVERSION" | cut -d- -f2`
 
 debian_import()
 {
@@ -93,7 +99,7 @@ debian_import()
     exit 1
   fi
 
-  local deb_url="$(zcat Packages.gz | tail -n +$record_start | grep -m1 -e '^Filename' | gawk '{print $2}')"
+  local deb_url="$(zcat Packages.gz | tail -n +$((record_start)) | grep -m1 -e '^Filename' | gawk '{print $2}')"
   wget -N "http://$mirror/debian/$deb_url" 2>/dev/null
   local filename="$(basename "$deb_url")"
 
@@ -115,11 +121,11 @@ custom_module()
         local fullver="$kver$CONFIG_LOCALVERSION"
         local cross="$HOST_DIR/bin/$(ls output/host/bin/ | grep -e '^.*buildroot.*gcc$' | sed 's/...$//g')"
 
-        cd "$mod_dir" || exit 99
+        cd "$mod_dir" || exit 98
         make clean
         make TARGET="$fullver" KERNEL_BUILD="$kernel_dir" CROSS_COMPILE="$cross" KERNEL_MODULES="$TARGET_DIR/lib/modules/$fullver"
         make modules_install TARGET="$fullver" KERNEL_BUILD="$kernel_dir" CROSS_COMPILE="$cross" KERNEL_MODULES="$TARGET_DIR/lib/modules/$fullver"
-        cd - > /dev/null
+        cd - > /dev/null || exit 1
         depmod -b "$TARGET_DIR" -o "$TARGET_DIR" "$fullver"
 }
 
@@ -150,7 +156,7 @@ mail_setup()
 
 generate_initrd()
 {
-local arch="$(echo $MACHTYPE | cut -d\- -f1)"
+local arch=`echo "$MACHTYPE" | cut -d- -f1`
 
 local importbins="busybox blkid mdadm micro-evtd lsblk timeout ubiattach ubidetach"
 local workdir="$BINARIES_DIR/initrdtmp"
@@ -215,11 +221,9 @@ do
 done
 
 ##pull in any staged modules
-cd "$BINARIES_DIR/modules/" 2> /dev/null
-if [ $? -eq 0 ]; then
-  rsync -vr * "$workdir/"
-  cd -
-fi
+cd "$moddir" 2> /dev/null || exit 97
+rsync -vr ./* "$workdir/"
+cd - || exit 89
 
 #create a cpio archive of the directory for use as an initramfs
 cd "$workdir" || exit 1
@@ -244,7 +248,7 @@ fi
 pad_dtbs()
 {
   ##pad the dtb size so uboot can pass stuff where needed
-  for x in $(ls "$BINARIES_DIR"/*.dtb)
+  for x in "$BINARIES_DIR"/*.dtb
   do
     dtc -I dtb -O dtb -p 10240 -o "$x" "$x"
   done
@@ -290,16 +294,16 @@ syslinux_gpt_install()
 {
   ##write syslinux boot record to partition table.
   dd bs=440 count=1 if="$BINARIES_DIR/syslinux/gptmbr.bin" of="$diskimg" conv=notrunc 2>/dev/null
-  if [ $? -ne 0 ]; then echo "write mbr image failed"; exit 99; fi
+  if [ $? -ne 0 ]; then echo "write mbr image failed"; exit 96; fi
   sync
 }
 
 stage_module()
 {
-  mkdir "$BINARIES_DIR/modules/" 2>/dev/null
-  cd "$TARGET_DIR"
-  find lib/ -name $1.ko | xargs -I{} rsync -vR {} "$BINARIES_DIR/modules/"
-  cd -
+  mkdir "$moddir" 2>/dev/null
+  cd "$TARGET_DIR" || exit 95
+  find lib/ -name $1.ko | xargs -I{} rsync -vR {} "$moddir"
+  cd - || exit 1
 }
 
 create_image()
@@ -311,7 +315,7 @@ create_image()
 
   ## generate the raw images
   dd if=/dev/zero of="$diskimg" bs=1M count="$disksize" 2>/dev/null
-  if [ $? -ne 0 ]; then "create image failed"; exit 99; fi
+  if [ $? -ne 0 ]; then "create image failed"; exit 94; fi
 
   ##create boot and rootfs partitions with precomputed partuuid
   sgdisk -n 1:0:+"$bootsize"M "$diskimg" >/dev/null
@@ -345,16 +349,16 @@ create_image()
 
   if [ -z "$sectorsz" ] || [ -z "$bootstart" ] || [ -z "$rootstart" ]; then
     echo "failed to determine parition information"
-    exit 99
+    exit 93
   fi
 
   ##write boot fs into image
   dd if="$bootimg" of="$diskimg" bs="$sectorsz" seek="$bootstart" conv=notrunc 2>/dev/null
-  if [ $? -ne 0 ]; then "write boot image failed"; exit 99; fi
+  if [ $? -ne 0 ]; then "write boot image failed"; exit 92; fi
 
   ###write rootfs into image
   dd if="$rootimg" of="$diskimg" bs="$sectorsz" seek="$rootstart" conv=notrunc 2>/dev/null
-  if [ $? -ne 0 ]; then "write boot image failed"; exit 99; fi
+  if [ $? -ne 0 ]; then "write boot image failed"; exit 91; fi
 
   [ "$BR2_TARGET_SYSLINUX" = "y" ] && syslinux_gpt_install
 }
@@ -366,7 +370,7 @@ debian_lib_fixup()
   [ "$ARCH_TYPE" = "armhf" ] && tuple="arm-linux-gnueabihf"
   [ "$ARCH_TYPE" = "arm64" ] && tuple="aarch64-linux-gnu"
 
-  if [ ! -z "$tuple" ]; then
+  if [ -n "$tuple" ]; then
     ln -s "$TARGET_DIR/usr/lib" "$TARGET_DIR/usr/lib/$tuple" 2>/dev/null
     ln -s "$TARGET_DIR/lib" "$TARGET_DIR/lib/$tuple" 2>/dev/null
   fi
@@ -382,14 +386,14 @@ openrc_register_service()
 ##alpine uses openrc, grab some of their initscripts to fill in where buiildroot/debian ones don't work
 alpine_openrc_init()
 {
-  local script="$TARGET_DIR/etc/init.d/$(basename $1)"
+  local script="$TARGET_DIR/etc/init.d/$(basename "$1")"
   wget "https://git.alpinelinux.org/aports/plain/main/$1.initd" -O "$script" 2>/dev/null
   chmod +x "$script"
 }
 
 alpine_openrc_conf()
 {
-  wget "https://git.alpinelinux.org/aports/plain/main/$1.confd" -O "$TARGET_DIR/etc/conf.d/$(basename $1)" 2>/dev/null
+  wget "https://git.alpinelinux.org/aports/plain/main/$1.confd" -O "$TARGET_DIR/etc/conf.d/$(basename "$1")" 2>/dev/null
 }
 
 network_setup()
@@ -563,7 +567,7 @@ create_bootfs()
 
   ##create one of the sha1 manifests of the boot dir
   cd "$bootdir" || exit 1
-  sha1sum * > FW_CHECKSUM.SHA1
+  sha1sum ./* > FW_CHECKSUM.SHA1
   cd - >/dev/null || exit 1
 
   bootsize="$(du --apparent-size -shBM "$bootdir" | cut -dM -f1)"
@@ -605,9 +609,9 @@ gen_appended_uImage()
   local addr="0x00008000"
   local compress="none"
 
-  >"$machfile"
-  >"$shim"
-  >"$BINARIES_DIR/none.dtb"
+  true >"$machfile"
+  true >"$shim"
+  true >"$BINARIES_DIR/none.dtb"
 
   ##handle the variations here rather than pass lots of variables
   [ "$variant" = "alpine" ] || [ "$variant" = "ls700" ] && output="uImage-generic.buffalo"
@@ -619,8 +623,8 @@ gen_appended_uImage()
   ##some steps redundant except when cleaing out image/target dirs for testing.
 
   ##copy kernel + dtb to cover some edge cases
-  find "$kernel_dir" -name "$dtb" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
-  find "$kernel_dir" -name "$kernel" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
+  find "$kernel_dir" \( -name "$dtb" -o -name "$kernel" \) -exec cp -v "{}" "$BINARIES_DIR/" \;
+  #find "$kernel_dir" -name "$kernel" | xargs -I{} cp -v "{}" "$BINARIES_DIR/"
 
   [ "$dtb" = "orion5x-terastation-ts2pro.dtb" ] && echo -e -n "\\x06\\x1c\\xa0\\xe3\\x30\\x10\\x81\\xe3" > "$machfile"
   [ "$dtb_prefix" = "mv78100" ] && echo -e -n "\\x0a\\x1c\\xa0\\xe3\\x89\\x10\\x81\\xe3" > "$machfile"
@@ -629,7 +633,7 @@ gen_appended_uImage()
   kernel="$BINARIES_DIR/$kernel"
 
   ##if doing non-dtb init empty the dtb ahead of append step
-  [ -s "$machfile" ] && >"$dtb"
+  [ -s "$machfile" ] && true > "$dtb"
 
   cat "$machfile" "$shim" "$kernel" "$dtb" > "$BINARIES_DIR/katkern"
   mkimage -A "$arch" -O linux -T kernel -C "$compress" -a "$addr" -e "$addr" -n buildroot-kernel -d "$BINARIES_DIR/katkern" "$BINARIES_DIR/$output"
