@@ -390,25 +390,22 @@ mkdir /mnt/install
 modprobe loop
 mount -o loop /boot/rootfs.squashfs /mnt/install/
 
+[ `dd if=/dev/mtd2 bs=4 count=1 2>/dev/null` = "UBI#" ] && ubichk=1
 
+##format the new rootfs
+##only needed the first time?
+[ "$ubichk" = "1" ] || ubiformat /dev/mtd2
 
-
-###make real bloody sure you've got the right mtd
-# ubiformat /dev/mtd2
-#ubiformat: mtd2 (nand), size 224526336 bytes (214.1 MiB), 1713 eraseblocks of 131072 bytes (128.0 KiB), min. I/O size 2048 bytes
-#libscan: scanning eraseblock 1712 -- 100 % complete
-#ubiformat: 1713 eraseblocks have valid erase counter, mean value is 3
-#ubiformat: formatting eraseblock 1712 -- 100 % complete
-
-# ubiattach -m 2
-#UBI device number 0, total 1713 LEBs (217509888 bytes, 207.4 MiB), available 1670 LEBs (212049920 bytes, 202.2 MiB), LEB size 126976 bytes (124.0 KiB)
+ubiattach -m 2
 
 # ubimkvol /dev/ubi0 -m -N rootfs
 #Set volume size to 212049920
 #Volume ID 0, size 1670 LEBs (212049920 bytes, 202.2 MiB), LEB size 126976 bytes (124.0 KiB), dynamic, name "rootfs", alignment 1
 
-#mkfs.ubifs -v -d /mnt/install/ /dev/ubi0_0
-## mkfs.ubifs -v -d /mnt/install/ -x zlib /dev/ubi0_0
+mkfs.ubifs -v -d /mnt/install/ -x zlib /dev/ubi0_0
+
+
+
 exit
 
 
