@@ -22,19 +22,19 @@ These images have some advantages over a more traditional distro like Debian, in
 
 2. Download the supported buildroot version to the root of the repo
 
-`wget https://buildroot.org/downloads/buildroot-2024.11.1.tar.xz`
+`wget https://buildroot.org/downloads/buildroot-2025.02.tar.xz`
 
 4. unpack it
 
-`tar xf buildroot-2024.11.1.tar.xz`
+`tar xf buildroot-2025.02.tar.xz`
 
 5. Copy the desired configuration into the buildroot directory.
 
-`cp configs/alpine_defconfig buildroot-2024.11.1/.config`
+`cp configs/alpine_defconfig buildroot-2025.02/.config`
 
 6. Enter the buildroot directory
 
-`cd buildroot-2024.11.1/`
+`cd buildroot-2025.02/`
 
 6. Make any configuration changes desired.
 
