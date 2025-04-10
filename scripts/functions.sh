@@ -7,7 +7,7 @@ custom_dir="$CONFIG_DIR/../custom"
 bootdir="$BINARIES_DIR/boottmp"
 moddir="$BINARIES_DIR/modules/"
 
-mkdir "$moddir" 2>/dev/null
+mkdir -p "$moddir" 2>/dev/null
 
 loadvars="BR2_LINUX_KERNEL_IMAGEGZ BR2_LINUX_KERNEL_INTREE_DTS_NAME"
 loadvars+=" BR2_ARM_EABI BR2_ARM_EABIHF BR2_x86_64 BR2_aarch64"
@@ -540,7 +540,7 @@ install_ssh_key()
 bootfs_prep()
 {
   rm -rf "$bootdir" 2>/dev/null
-  mkdir "$bootdir"
+  mkdir -p "$bootdir"
   local add_if_found="rootfs.squashfs"
   for found in $add_if_found
   do
