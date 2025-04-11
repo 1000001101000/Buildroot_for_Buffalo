@@ -541,11 +541,6 @@ bootfs_prep()
 {
   rm -rf "$bootdir" 2>/dev/null
   mkdir -p "$bootdir"
-  local add_if_found="rootfs.squashfs"
-  for found in $add_if_found
-  do
-    [ -f "$BINARIES_DIR/$found" ] && bootfs_copy "$BINARIES_DIR/$found"
-  done
 }
 
 bootfs_copy()
@@ -562,6 +557,12 @@ bootfs_dtb_copy()
 
 create_bootfs()
 {
+  local add_if_found="rootfs.squashfs"
+  for found in $add_if_found
+  do
+    [ -f "$BINARIES_DIR/$found" ] && bootfs_copy "$BINARIES_DIR/$found"
+  done
+
   ###copy in the syslinux binaries and config if needed
   [ "$BR2_TARGET_SYSLINUX" = "y" ] && syslinux_setup
 
