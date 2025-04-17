@@ -71,4 +71,7 @@ mkdir "$TARGET_DIR/mnt/array" 2>/dev/null
 
 bootfs_prep
 
+##misc errata
+firewalld_errata
+
 exit 0

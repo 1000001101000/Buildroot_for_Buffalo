@@ -11,7 +11,7 @@ mkdir -p "$moddir" 2>/dev/null
 
 loadvars="BR2_LINUX_KERNEL_IMAGEGZ BR2_LINUX_KERNEL_INTREE_DTS_NAME"
 loadvars+=" BR2_ARM_EABI BR2_ARM_EABIHF BR2_x86_64 BR2_aarch64"
-loadvars+=" BR2_INIT_SYSTEMD BR2_INIT_OPENRC"
+loadvars+=" BR2_INIT_SYSTEMD BR2_INIT_OPENRC BR2_PACKAGE_FIREWALLD"
 loadvars+=" BR2_TARGET_SYSLINUX BR2_PACKAGE_ZFS BR2_PACKAGE_DCRON BR2_PACKAGE_E2FSPROGS_E2SCRUB"
 
 for x in $loadvars
@@ -682,4 +682,18 @@ memory_config()
   if [ "$variant" = "armada370" ] || [ "$variant" = "armadaxp" ]; then
     echo "vm.min_free_kbytes = 10240" > "$TARGET_DIR/etc/sysctl.d/minfree.conf"
   fi
+}
+
+firewalld_errata()
+{
+  ##currently this package's build uses paths for things like modprobe
+  ##based on the build system rather than the target system causing issues
+  ##on some systems. I haven't figured out how to properly fix that yet
+
+  [ "$BR2_PACKAGE_FIREWALLD" = "y" ] || return
+
+  for local x in modprobe rmmod kill sysctl xsltproc
+  do
+    [ ! -e "$TARGET_DIR/usr/sbin/$x" ] && [ -f "$TARGET_DIR/sbin/$x" ] && ln -s "/sbin/$x" "$TARGET_DIR/usr/sbin/$x"
+  done
 }
