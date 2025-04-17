@@ -1,5 +1,8 @@
 #!/bin/bash
 
+[ -f ".firstrun" ] && exit 0
+
+
 ##patch to add sysbench and dependency may need to look into why never merged
 wget -nc "https://marc.info/?l=buildroot&m=170021431900448&q=raw" -O "$CONFIG_DIR/../patches/buildroot_add_sysbench.patch" 2>/dev/null
 wget -nc "https://marc.info/?l=buildroot&m=170021430500441&q=raw" -O "$CONFIG_DIR/../patches/buildroot_add_ck.patch" 2>/dev/null
@@ -30,4 +33,6 @@ fi
 
 ##try to ensure any config related changes get processed properly
 make oldconfig
-exit 0
+touch ".firstrun"
+echo "Buildroot patches applied, please run make again"
+exit 1
