@@ -55,12 +55,13 @@ CONFIG_BLK_DEV_LOOP=m
 ##filesystems, try to keep non-initrd an option for most configs while keeping 
 ## kernel size under control while also providing wide support generally.  
 CONFIG_SQUASHFS=m
-CONFIG_SQUASHFS_EMBEDDED=m
-CONFIG_SQUASHFS_XZ=m
-CONFIG_SQUASHFS_ZLIB=m
+CONFIG_SQUASHFS_EMBEDDED=y
+CONFIG_SQUASHFS_XZ=y
+CONFIG_SQUASHFS_ZLIB=y
 CONFIG_SQUASHFS_4K_DEVBLK_SIZE=y
 CONFIG_MTD_UBI=y
 CONFIG_UBIFS_FS=y
+CONFIG_OVERLAY_FS=m
 
 CONFIG_JFFS2_FS=m
 CONFIG_CRAMFS=m
