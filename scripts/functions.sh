@@ -691,8 +691,8 @@ firewalld_errata()
   ##on some systems. I haven't figured out how to properly fix that yet
 
   [ "$BR2_PACKAGE_FIREWALLD" = "y" ] || return
-
-  for local x in modprobe rmmod kill sysctl xsltproc
+  local x=""
+  for x in modprobe rmmod kill sysctl xsltproc
   do
     [ ! -e "$TARGET_DIR/usr/sbin/$x" ] && [ -f "$TARGET_DIR/sbin/$x" ] && ln -s "/sbin/$x" "$TARGET_DIR/usr/sbin/$x"
   done
